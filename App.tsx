@@ -77,21 +77,6 @@ const ROUTES: Route[] = [
   "thanks",
 ];
 
-const DESKTOP_NAV: { route: Route; label: string }[] = [
-  { route: "home", label: "Home" },
-  { route: "quiz", label: "Quiz" },
-  { route: "shop", label: "Shop" },
-  { route: "about", label: "Over ons" },
-  { route: "contact", label: "Contact" },
-];
-
-const MOBILE_TABS: { route: Route; label: string; icon: string }[] = [
-  { route: "home", label: "Home", icon: "⌂" },
-  { route: "quiz", label: "Quiz", icon: "◉" },
-  { route: "shop", label: "Shop", icon: "🛍" },
-  { route: "about", label: "Over", icon: "ℹ" },
-];
-
 const ANSWER_OPTIONS = ["Nooit", "Soms", "Vaak", "Altijd"];
 const OPTION_POINTS = [0, 1, 2, 3];
 const OPTION_VIBE_LABELS = ["Rustig", "Wisselend", "Herkenbaar", "Vol raak"];
@@ -580,6 +565,11 @@ export default function App() {
     }
   };
 
+  const openMenuRoute = (next: Route) => {
+    setMenuOpen(false);
+    goRoute(next, "tap");
+  };
+
   const startQuiz = () => {
     setAnswers([]);
     setQuestionIndex(0);
@@ -761,11 +751,15 @@ export default function App() {
     <>
       <View style={[styles.heroWrap, isDesktop && styles.heroWrapDesktop]}>
         <View style={styles.heroCard}>
-          <Text style={styles.eyebrow}>ADHD-proof website</Text>
-          <Text style={styles.heroTitle}>Ontdek je type, pak direct je plan</Text>
+          <Text style={styles.eyebrow}>Focuskracht / Editorial Quiz</Text>
+          <View style={styles.heroTypeStack}>
+            <Text style={styles.heroTitleOutline}>PURE</Text>
+            <Text style={styles.heroTitleSolid}>RUST</Text>
+            <Text style={styles.heroTitleOutline}>IN JE HOOFD</Text>
+          </View>
           <Text style={styles.heroText}>
-            Op mobiel voelt dit als een app. Op desktop als een strakke website. Alles draait om
-            snelle actie, weinig ruis en duidelijke keuzes.
+            Een stijlvolle webapp met hoog contrast, duidelijke focus en snelle actie. Eerst de
+            test, daarna direct je plan en e-book.
           </Text>
           <View style={styles.heroActions}>
             <Pressable style={styles.primaryButton} onPress={startQuiz}>
@@ -859,7 +853,7 @@ export default function App() {
                 style={({ pressed }) => [styles.optionButton, pressed && styles.optionPressed]}
               >
                 <Text style={styles.optionLabel}>{label}</Text>
-                <Text style={styles.optionMeta}>Tap</Text>
+                <Text style={styles.optionMeta}>{OPTION_VIBE_LABELS[index]}</Text>
               </Pressable>
             ))}
           </View>
@@ -943,7 +937,7 @@ export default function App() {
                 if (resultEmailError) setResultEmailError("");
               }}
               placeholder="jij@email.com"
-              placeholderTextColor="#9d9089"
+              placeholderTextColor="#7f8590"
               keyboardType="email-address"
               autoCapitalize="none"
               style={styles.input}
@@ -1015,14 +1009,14 @@ export default function App() {
             value={checkoutName}
             onChangeText={setCheckoutName}
             placeholder="Naam"
-            placeholderTextColor="#9d9089"
+            placeholderTextColor="#7f8590"
             style={styles.input}
           />
           <TextInput
             value={checkoutEmail}
             onChangeText={setCheckoutEmail}
             placeholder="E-mail"
-            placeholderTextColor="#9d9089"
+            placeholderTextColor="#7f8590"
             keyboardType="email-address"
             autoCapitalize="none"
             style={styles.input}
@@ -1031,7 +1025,7 @@ export default function App() {
             value={checkoutCoupon}
             onChangeText={setCheckoutCoupon}
             placeholder="Code (optioneel)"
-            placeholderTextColor="#9d9089"
+            placeholderTextColor="#7f8590"
             style={styles.input}
           />
 
@@ -1150,14 +1144,14 @@ export default function App() {
         value={contactName}
         onChangeText={setContactName}
         placeholder="Naam"
-        placeholderTextColor="#9d9089"
+        placeholderTextColor="#7f8590"
         style={styles.input}
       />
       <TextInput
         value={contactEmail}
         onChangeText={setContactEmail}
         placeholder="E-mail"
-        placeholderTextColor="#9d9089"
+        placeholderTextColor="#7f8590"
         keyboardType="email-address"
         autoCapitalize="none"
         style={styles.input}
@@ -1166,7 +1160,7 @@ export default function App() {
         value={contactMessage}
         onChangeText={setContactMessage}
         placeholder="Bericht"
-        placeholderTextColor="#9d9089"
+        placeholderTextColor="#7f8590"
         multiline
         style={[styles.input, styles.textArea]}
       />
@@ -1202,7 +1196,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f7eee7" />
+      <StatusBar barStyle="light-content" backgroundColor="#050507" />
 
       <View pointerEvents="none" style={styles.bgLayer}>
         <View style={styles.bgBlobOne} />
@@ -1211,43 +1205,79 @@ export default function App() {
 
       <View style={[styles.topBar, isDesktop && styles.topBarDesktop]}>
         <View>
-          <Text style={styles.brand}>Focuskracht</Text>
-          <Text style={styles.brandSub}>{isDesktop ? "ADHD-proof website" : "ADHD web-app"}</Text>
+          <Text style={styles.brand}>The ADHD Girls Club</Text>
+          <Text style={styles.brandSub}>Focuskracht web app</Text>
         </View>
+        <Pressable
+          style={styles.menuButton}
+          onPress={() => {
+            setMenuOpen((prev) => !prev);
+            playUiSound("tap");
+          }}
+        >
+          <Text style={styles.menuButtonIcon}>{menuOpen ? "×" : "≡"}</Text>
+        </Pressable>
+      </View>
 
-        {isDesktop ? (
-          <View style={styles.desktopNav}>
-            {DESKTOP_NAV.map((item) => {
-              const active = route === item.route;
-              return (
-                <Pressable
-                  key={item.route}
-                  style={[styles.desktopNavItem, active && styles.desktopNavItemActive]}
-                  onPress={() => goRoute(item.route, "tap")}
-                >
-                  <Text style={[styles.desktopNavText, active && styles.desktopNavTextActive]}>
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-            <Pressable style={styles.headerCta} onPress={() => goRoute("checkout", "tap")}>
-              <Text style={styles.headerCtaText}>Koop nu</Text>
+      <Animated.View
+        pointerEvents={menuOpen ? "auto" : "none"}
+        style={[
+          styles.menuOverlay,
+          {
+            opacity: menuFade,
+            transform: [
+              {
+                translateY: menuFade.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-18, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <View style={[styles.menuContent, !isDesktop && styles.menuContentMobile]}>
+          <View style={styles.menuMainLinks}>
+            <Pressable onPress={() => openMenuRoute("home")}>
+              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>HOME</Text>
+            </Pressable>
+            <Pressable onPress={() => openMenuRoute("quiz")}>
+              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>QUIZ</Text>
+            </Pressable>
+            <Pressable onPress={() => openMenuRoute("shop")}>
+              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>SHOP</Text>
+            </Pressable>
+            <Pressable onPress={() => openMenuRoute("about")}>
+              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>ABOUT</Text>
+            </Pressable>
+            <Pressable onPress={() => openMenuRoute("contact")}>
+              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>CONTACT</Text>
             </Pressable>
           </View>
-        ) : (
-          <Pressable
-            style={styles.soundToggle}
-            onPress={() => {
-              setSoundEnabled((prev) => !prev);
-              playUiSound("tap");
-            }}
-          >
-            <Text style={styles.soundToggleText}>{soundEnabled ? "🔊" : "🔈"}</Text>
-            <Text style={styles.soundToggleLabel}>Geluid</Text>
-          </Pressable>
-        )}
-      </View>
+
+          <View style={[styles.menuSideLinks, !isDesktop && styles.menuSideLinksMobile]}>
+            <Pressable onPress={() => openMenuRoute("checkout")}>
+              <Text style={[styles.menuSideLink, !isDesktop && styles.menuSideLinkMobile]}>Checkout</Text>
+            </Pressable>
+            <Pressable onPress={() => openMenuRoute("result")}>
+              <Text style={[styles.menuSideLink, !isDesktop && styles.menuSideLinkMobile]}>
+                Resultaat
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setSoundEnabled((prev) => !prev);
+                playUiSound("tap");
+              }}
+            >
+              <Text style={[styles.menuSideLink, !isDesktop && styles.menuSideLinkMobile]}>
+                Geluid {soundEnabled ? "aan" : "uit"}
+              </Text>
+            </Pressable>
+            <Text style={styles.menuCredits}>Focuskracht 2026</Text>
+          </View>
+        </View>
+      </Animated.View>
 
       <ScrollView
         contentContainerStyle={[
@@ -1259,40 +1289,13 @@ export default function App() {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.container, isDesktop && styles.containerDesktop]}>{renderPage()}</View>
-
-        {isDesktop && (
-          <View style={styles.footer}>
-            <Text style={styles.footerTitle}>Focuskracht</Text>
-            <Text style={styles.footerText}>
-              ADHD-proof website en web-app ervaring met quiz, shop en snelle checkout.
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-
-      {!isDesktop && (
-        <View style={styles.mobileDock}>
-          {MOBILE_TABS.map((item) => {
-            const active = route === item.route;
-            return (
-              <Pressable
-                key={item.route}
-                style={[styles.mobileTab, active && styles.mobileTabActive]}
-                onPress={() => goRoute(item.route, "tap")}
-              >
-                <Text style={[styles.mobileTabIcon, active && styles.mobileTabIconActive]}>{item.icon}</Text>
-                <Text style={[styles.mobileTabLabel, active && styles.mobileTabLabelActive]}>
-                  {item.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-
-          <Pressable style={styles.mobileAction} onPress={() => goRoute("checkout", "tap")}>
-            <Text style={styles.mobileActionText}>Bestel</Text>
-          </Pressable>
+        <View style={styles.footer}>
+          <Text style={styles.footerTitle}>Focuskracht</Text>
+          <Text style={styles.footerText}>
+            ADHD-proof web app met editorial UI, quizflow, shop en snelle checkout.
+          </Text>
         </View>
-      )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -1319,7 +1322,7 @@ function InfoChip({ text, icon }: { text: string; icon: string }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f7eee7",
+    backgroundColor: "#050507",
   },
   bgLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -1327,38 +1330,38 @@ const styles = StyleSheet.create({
   },
   bgBlobOne: {
     position: "absolute",
-    top: -140,
-    left: -70,
-    width: 340,
-    height: 340,
+    top: -180,
+    left: -110,
+    width: 420,
+    height: 420,
     borderRadius: 999,
-    backgroundColor: "rgba(255, 214, 188, 0.68)",
+    backgroundColor: "rgba(240, 228, 212, 0.08)",
   },
   bgBlobTwo: {
     position: "absolute",
-    right: -120,
-    top: 110,
-    width: 340,
-    height: 340,
+    right: -130,
+    top: 220,
+    width: 380,
+    height: 380,
     borderRadius: 999,
-    backgroundColor: "rgba(216, 232, 221, 0.62)",
+    backgroundColor: "rgba(193, 172, 153, 0.12)",
   },
   topBar: {
     marginHorizontal: 12,
-    marginTop: 10,
+    marginTop: 8,
     marginBottom: 8,
-    minHeight: 72,
-    borderRadius: 20,
+    minHeight: 74,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#ead8cd",
-    backgroundColor: "rgba(255, 249, 244, 0.95)",
-    paddingHorizontal: 14,
+    borderColor: "#2f3136",
+    backgroundColor: "rgba(10, 11, 14, 0.88)",
+    paddingHorizontal: 18,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    shadowColor: "#ad9588",
-    shadowOpacity: 0.2,
-    shadowRadius: 14,
+    shadowColor: "#000000",
+    shadowOpacity: 0.4,
+    shadowRadius: 18,
     shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
@@ -1368,93 +1371,112 @@ const styles = StyleSheet.create({
     maxWidth: 1120,
   },
   brand: {
-    fontFamily: appFont,
-    color: "#2f2735",
-    fontSize: 24,
-    fontWeight: "800",
-    letterSpacing: -0.5,
+    fontFamily: displayFont,
+    color: "#f4f0ea",
+    fontSize: 23,
+    fontWeight: "700",
+    letterSpacing: -0.2,
   },
   brandSub: {
     fontFamily: appFont,
-    color: "#7a6b73",
-    fontSize: 12,
+    color: "#8f929a",
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.7,
+    letterSpacing: 0.9,
   },
-  soundToggle: {
-    minWidth: 72,
-    minHeight: 44,
-    borderRadius: 12,
+  menuButton: {
+    width: 58,
+    height: 58,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#dfcdc1",
-    backgroundColor: "#fff5ee",
+    borderColor: "#666b74",
+    backgroundColor: "rgba(7, 8, 10, 0.9)",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 8,
-    gap: 1,
   },
-  soundToggleText: {
-    fontFamily: appFont,
-    fontSize: 16,
+  menuButtonIcon: {
+    fontFamily: displayFont,
+    color: "#f4f0ea",
+    fontSize: 30,
+    lineHeight: 32,
   },
-  soundToggleLabel: {
-    fontFamily: appFont,
-    color: "#5b4f5a",
-    fontSize: 10,
-    fontWeight: "800",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
+  menuOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.95)",
+    paddingTop: 126,
+    paddingHorizontal: 22,
   },
-  desktopNav: {
+  menuContent: {
+    flex: 1,
     flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+  },
+  menuContentMobile: {
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    paddingTop: 8,
+    gap: 28,
+  },
+  menuMainLinks: {
+    flex: 1.6,
+    justifyContent: "center",
     gap: 8,
   },
-  desktopNavItem: {
-    minHeight: 38,
-    borderRadius: 10,
-    paddingHorizontal: 11,
-    justifyContent: "center",
-  },
-  desktopNavItemActive: {
-    backgroundColor: "#fff0e8",
-    borderWidth: 1,
-    borderColor: "#e5c8b6",
-  },
-  desktopNavText: {
-    fontFamily: appFont,
-    color: "#5f515f",
-    fontSize: 14,
+  menuMainLink: {
+    fontFamily: displayFont,
+    color: "#f2eee8",
+    fontSize: 56,
+    lineHeight: 60,
     fontWeight: "700",
+    letterSpacing: -1.2,
   },
-  desktopNavTextActive: {
-    color: "#3f3444",
+  menuMainLinkMobile: {
+    fontSize: 48,
+    lineHeight: 50,
   },
-  headerCta: {
-    minHeight: 40,
-    borderRadius: 11,
-    backgroundColor: "#d88f75",
-    paddingHorizontal: 14,
-    alignItems: "center",
+  menuSideLinks: {
+    flex: 0.9,
     justifyContent: "center",
+    alignItems: "flex-start",
+    gap: 14,
+    paddingTop: 40,
   },
-  headerCtaText: {
+  menuSideLinksMobile: {
+    paddingTop: 0,
+    gap: 10,
+  },
+  menuSideLink: {
     fontFamily: appFont,
-    color: "#fffaf6",
-    fontSize: 13,
-    fontWeight: "800",
+    color: "#b7b3af",
+    fontSize: 24,
+    lineHeight: 30,
+    fontWeight: "500",
+  },
+  menuSideLinkMobile: {
+    fontSize: 19,
+    lineHeight: 24,
+  },
+  menuCredits: {
+    marginTop: 26,
+    fontFamily: appFont,
+    color: "#6f737c",
+    fontSize: 14,
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
   },
   scrollContent: {
     paddingHorizontal: 12,
-    paddingTop: 6,
+    paddingTop: 4,
     paddingBottom: 26,
   },
   scrollDesktop: {
     alignItems: "center",
   },
   scrollMobile: {
-    paddingBottom: 108,
+    paddingBottom: 34,
   },
   container: {
     width: "100%",
@@ -1474,12 +1496,12 @@ const styles = StyleSheet.create({
     flex: 1.2,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#e9d7cb",
-    backgroundColor: "rgba(255, 250, 246, 0.95)",
+    borderColor: "#2e3239",
+    backgroundColor: "rgba(11, 13, 17, 0.93)",
     padding: 18,
     gap: 12,
-    shadowColor: "#ac9487",
-    shadowOpacity: 0.22,
+    shadowColor: "#000000",
+    shadowOpacity: 0.3,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 10 },
     elevation: 2,
@@ -1488,20 +1510,20 @@ const styles = StyleSheet.create({
     flex: 0.8,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#d8dbcf",
-    backgroundColor: "rgba(242, 248, 243, 0.95)",
+    borderColor: "#2e3035",
+    backgroundColor: "rgba(16, 18, 21, 0.92)",
     padding: 18,
     gap: 9,
   },
   sideTitle: {
-    fontFamily: appFont,
-    color: "#3a3242",
-    fontSize: 20,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f4f0e8",
+    fontSize: 30,
+    fontWeight: "700",
   },
   sideBullet: {
     fontFamily: appFont,
-    color: "#5d5560",
+    color: "#b2b0b4",
     fontSize: 14,
     lineHeight: 21,
   },
@@ -1509,28 +1531,40 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#e8d5ca",
-    backgroundColor: "#fff6ef",
-    paddingHorizontal: 10,
+    borderColor: "#3a3d44",
+    backgroundColor: "rgba(14, 16, 20, 0.85)",
+    paddingHorizontal: 12,
     paddingVertical: 4,
     fontFamily: appFont,
-    color: "#826d60",
+    color: "#a7a9b0",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.7,
+    letterSpacing: 0.9,
   },
-  heroTitle: {
-    fontFamily: appFont,
-    color: "#2f2736",
-    fontSize: 36,
-    lineHeight: 42,
-    fontWeight: "800",
-    letterSpacing: -1,
+  heroTypeStack: {
+    gap: 0,
+  },
+  heroTitleOutline: {
+    fontFamily: displayFont,
+    color: "#8f9298",
+    fontSize: 54,
+    lineHeight: 56,
+    fontWeight: "400",
+    letterSpacing: -1.2,
+    opacity: 0.62,
+  },
+  heroTitleSolid: {
+    fontFamily: displayFont,
+    color: "#f2ede5",
+    fontSize: 68,
+    lineHeight: 68,
+    fontWeight: "700",
+    letterSpacing: -1.5,
   },
   heroText: {
     fontFamily: appFont,
-    color: "#635967",
+    color: "#b8b5ba",
     fontSize: 15,
     lineHeight: 23,
   },
@@ -1540,40 +1574,42 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   primaryButton: {
-    minHeight: 48,
-    borderRadius: 14,
-    backgroundColor: "#d88f75",
-    paddingHorizontal: 16,
+    minHeight: 52,
+    borderRadius: 999,
+    backgroundColor: "#e8dece",
+    paddingHorizontal: 22,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#b97f68",
-    shadowOpacity: 0.25,
+    shadowColor: "#000000",
+    shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
     elevation: 2,
   },
   primaryButtonText: {
     fontFamily: appFont,
-    color: "#fffbf8",
+    color: "#121318",
     fontSize: 15,
     fontWeight: "800",
-    letterSpacing: -0.2,
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
   },
   secondaryButton: {
-    minHeight: 48,
-    borderRadius: 14,
+    minHeight: 52,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#dfccc1",
-    backgroundColor: "#fff6ef",
-    paddingHorizontal: 16,
+    borderColor: "#4d525a",
+    backgroundColor: "rgba(10, 11, 14, 0.9)",
+    paddingHorizontal: 20,
     justifyContent: "center",
     alignItems: "center",
   },
   secondaryButtonText: {
     fontFamily: appFont,
-    color: "#4f4252",
+    color: "#ece6dd",
     fontSize: 14,
     fontWeight: "700",
+    letterSpacing: 0.3,
   },
   ghostButton: {
     minHeight: 46,
@@ -1583,7 +1619,7 @@ const styles = StyleSheet.create({
   },
   ghostButtonText: {
     fontFamily: appFont,
-    color: "#786a74",
+    color: "#9d9fa5",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -1596,9 +1632,9 @@ const styles = StyleSheet.create({
     minHeight: 32,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#e4d2c6",
-    backgroundColor: "#fff8f3",
-    paddingHorizontal: 10,
+    borderColor: "#3a3d43",
+    backgroundColor: "rgba(16, 17, 21, 0.92)",
+    paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
@@ -1609,7 +1645,7 @@ const styles = StyleSheet.create({
   },
   infoChipText: {
     fontFamily: appFont,
-    color: "#5e5562",
+    color: "#cbcacd",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -1621,10 +1657,10 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#e6d5ca",
-    backgroundColor: "rgba(255, 250, 246, 0.94)",
+    borderColor: "#2f3238",
+    backgroundColor: "rgba(12, 14, 18, 0.92)",
     padding: 14,
     gap: 6,
   },
@@ -1633,65 +1669,65 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   featureTitle: {
-    fontFamily: appFont,
-    color: "#3e3446",
-    fontSize: 18,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f3eee7",
+    fontSize: 28,
+    fontWeight: "700",
   },
   featureText: {
     fontFamily: appFont,
-    color: "#665d67",
+    color: "#b0afb3",
     fontSize: 14,
     lineHeight: 21,
   },
   bannerCard: {
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#d9ddd0",
-    backgroundColor: "rgba(241, 247, 242, 0.95)",
-    padding: 16,
+    borderColor: "#32353b",
+    backgroundColor: "rgba(13, 15, 20, 0.95)",
+    padding: 20,
     gap: 10,
   },
   bannerEyebrow: {
     fontFamily: appFont,
-    color: "#637167",
+    color: "#92959e",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.8,
   },
   bannerTitle: {
-    fontFamily: appFont,
-    color: "#2f3036",
-    fontSize: 29,
-    lineHeight: 35,
-    fontWeight: "800",
-    letterSpacing: -0.9,
+    fontFamily: displayFont,
+    color: "#f3eee7",
+    fontSize: 44,
+    lineHeight: 44,
+    fontWeight: "700",
+    letterSpacing: -1.1,
   },
   pageCard: {
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#e8d7cc",
-    backgroundColor: "rgba(255, 251, 247, 0.95)",
+    borderColor: "#2b2e33",
+    backgroundColor: "rgba(9, 11, 14, 0.93)",
     padding: 18,
     gap: 12,
-    shadowColor: "#a79387",
-    shadowOpacity: 0.18,
+    shadowColor: "#000000",
+    shadowOpacity: 0.3,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
   sectionTitle: {
-    fontFamily: appFont,
-    color: "#312938",
-    fontSize: 32,
-    lineHeight: 38,
-    fontWeight: "800",
-    letterSpacing: -0.9,
+    fontFamily: displayFont,
+    color: "#f4efe8",
+    fontSize: 52,
+    lineHeight: 51,
+    fontWeight: "700",
+    letterSpacing: -1.1,
   },
   sectionLead: {
     fontFamily: appFont,
-    color: "#645a66",
+    color: "#a7a8ae",
     fontSize: 15,
     lineHeight: 23,
   },
@@ -1704,13 +1740,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 10,
     borderRadius: 999,
-    backgroundColor: "#eadfd8",
+    backgroundColor: "#272b31",
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
     borderRadius: 999,
-    backgroundColor: "#d89c88",
+    backgroundColor: "#ebe1d1",
   },
   progressLabel: {
     minWidth: 50,
@@ -1718,64 +1754,64 @@ const styles = StyleSheet.create({
     fontFamily: appFont,
     fontSize: 12,
     fontWeight: "700",
-    color: "#7c6f68",
+    color: "#8f9199",
   },
   questionCard: {
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#e7d5cb",
-    backgroundColor: "#fff8f2",
-    padding: 14,
+    borderColor: "#32353c",
+    backgroundColor: "rgba(16, 18, 22, 0.94)",
+    padding: 16,
     gap: 12,
   },
   questionCount: {
     fontFamily: appFont,
-    color: "#837168",
+    color: "#94969c",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.7,
   },
   questionText: {
-    fontFamily: appFont,
-    color: "#342b39",
-    fontSize: 29,
-    lineHeight: 35,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f4efe8",
+    fontSize: 39,
+    lineHeight: 41,
+    fontWeight: "700",
     letterSpacing: -0.8,
   },
   questionHint: {
     fontFamily: appFont,
-    color: "#6d626d",
+    color: "#9c9ea6",
     fontSize: 14,
   },
   optionsWrap: {
     gap: 9,
   },
   optionButton: {
-    minHeight: 62,
-    borderRadius: 14,
+    minHeight: 66,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#e4d2c7",
-    backgroundColor: "#fffdf9",
-    paddingHorizontal: 14,
+    borderColor: "#353840",
+    backgroundColor: "rgba(8, 10, 12, 0.96)",
+    paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   optionPressed: {
-    backgroundColor: "#fff2e8",
-    transform: [{ scale: 0.99 }],
+    backgroundColor: "rgba(32, 35, 40, 0.96)",
+    transform: [{ scale: 0.985 }],
   },
   optionLabel: {
     fontFamily: appFont,
-    color: "#3a3240",
+    color: "#ece7df",
     fontSize: 17,
     fontWeight: "700",
   },
   optionMeta: {
     fontFamily: appFont,
-    color: "#9a8a80",
+    color: "#8e9198",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1783,10 +1819,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     minHeight: 44,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#decdc2",
-    backgroundColor: "#fff6ef",
+    borderColor: "#444850",
+    backgroundColor: "rgba(11, 12, 14, 0.98)",
     paddingHorizontal: 16,
     justifyContent: "center",
     alignItems: "center",
@@ -1796,39 +1832,39 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontFamily: appFont,
-    color: "#5b4f5d",
+    color: "#eee9e0",
     fontSize: 14,
     fontWeight: "700",
   },
   inlineMessageCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#dfcec2",
-    backgroundColor: "#fff7f1",
+    borderColor: "#353941",
+    backgroundColor: "rgba(15, 17, 20, 0.94)",
     padding: 14,
     gap: 8,
   },
   inlineMessageTitle: {
-    fontFamily: appFont,
-    color: "#3f3547",
-    fontSize: 20,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f2eee7",
+    fontSize: 34,
+    fontWeight: "700",
   },
   inlineMessageText: {
     fontFamily: appFont,
-    color: "#675d67",
+    color: "#afb0b6",
     fontSize: 14,
   },
   resultBadge: {
     alignSelf: "flex-start",
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#e2d6ce",
-    backgroundColor: "#fff6ef",
+    borderColor: "#3d4149",
+    backgroundColor: "rgba(13, 15, 19, 0.9)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     fontFamily: appFont,
-    color: "#7b6a61",
+    color: "#9fa2a9",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1844,34 +1880,34 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#e5d4c9",
-    backgroundColor: "#fff9f4",
+    borderColor: "#333740",
+    backgroundColor: "rgba(13, 15, 20, 0.94)",
     padding: 12,
     gap: 6,
   },
   infoBlockTitle: {
-    fontFamily: appFont,
-    color: "#43394a",
-    fontSize: 16,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f2ede6",
+    fontSize: 28,
+    fontWeight: "700",
   },
   infoBlockText: {
     fontFamily: appFont,
-    color: "#685d67",
+    color: "#b1b1b6",
     fontSize: 14,
     lineHeight: 20,
   },
   recommendCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#ddcec3",
-    backgroundColor: "#fff5ee",
+    borderColor: "#343841",
+    backgroundColor: "rgba(13, 15, 19, 0.94)",
     padding: 12,
     gap: 8,
   },
   recommendLabel: {
     fontFamily: appFont,
-    color: "#6e6168",
+    color: "#93969f",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1888,21 +1924,22 @@ const styles = StyleSheet.create({
     width: "100%",
     aspectRatio: 1024 / 1536,
     borderRadius: 12,
-    backgroundColor: "#efe4db",
+    backgroundColor: "#1f2227",
   },
   recommendCopy: {
     flex: 1,
     gap: 8,
   },
   recommendTitle: {
-    fontFamily: appFont,
-    color: "#3c3244",
-    fontSize: 22,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f3eee7",
+    fontSize: 34,
+    lineHeight: 34,
+    fontWeight: "700",
   },
   recommendText: {
     fontFamily: appFont,
-    color: "#675d66",
+    color: "#b0afb3",
     fontSize: 14,
     lineHeight: 21,
   },
@@ -1916,17 +1953,17 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: "#cab7ad",
-    backgroundColor: "#fff7f1",
+    borderColor: "#6a6f78",
+    backgroundColor: "#101217",
   },
   captureDotActive: {
-    borderColor: "#b18371",
-    backgroundColor: "#b18371",
+    borderColor: "#ebe0cf",
+    backgroundColor: "#ebe0cf",
   },
   captureText: {
     flex: 1,
     fontFamily: appFont,
-    color: "#665b65",
+    color: "#c0bec2",
     fontSize: 14,
   },
   emailWrap: {
@@ -1934,14 +1971,14 @@ const styles = StyleSheet.create({
   },
   input: {
     minHeight: 48,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#e2d0c6",
-    backgroundColor: "#fff8f2",
-    paddingHorizontal: 12,
+    borderColor: "#3d424b",
+    backgroundColor: "rgba(9, 11, 14, 0.98)",
+    paddingHorizontal: 14,
     fontFamily: appFont,
     fontSize: 15,
-    color: "#362f3c",
+    color: "#f0ebe3",
   },
   textArea: {
     minHeight: 116,
@@ -1950,7 +1987,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontFamily: appFont,
-    color: "#c4555d",
+    color: "#f17d87",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -1959,7 +1996,7 @@ const styles = StyleSheet.create({
   },
   noteText: {
     fontFamily: appFont,
-    color: "#5b7a6a",
+    color: "#9dc9ae",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -1974,8 +2011,8 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#e3d3c9",
-    backgroundColor: "#fff9f4",
+    borderColor: "#323741",
+    backgroundColor: "rgba(13, 15, 19, 0.95)",
     padding: 10,
     gap: 7,
   },
@@ -1983,31 +2020,31 @@ const styles = StyleSheet.create({
     width: "32.4%",
   },
   catalogCardActive: {
-    borderColor: "#c28f7a",
-    backgroundColor: "#fff2ea",
+    borderColor: "#7a7e87",
+    backgroundColor: "rgba(23, 26, 31, 0.98)",
   },
   catalogImage: {
     width: "100%",
     aspectRatio: 1024 / 1536,
     borderRadius: 10,
-    backgroundColor: "#f0e4dc",
+    backgroundColor: "#20242b",
   },
   catalogTitle: {
-    fontFamily: appFont,
-    color: "#3e3445",
-    fontSize: 16,
-    fontWeight: "800",
-    lineHeight: 20,
+    fontFamily: displayFont,
+    color: "#f1ece4",
+    fontSize: 31,
+    lineHeight: 32,
+    fontWeight: "700",
   },
   catalogSubtitle: {
     fontFamily: appFont,
-    color: "#6c616c",
+    color: "#acacb2",
     fontSize: 13,
     lineHeight: 18,
   },
   catalogDescription: {
     fontFamily: appFont,
-    color: "#6e626d",
+    color: "#a9a9af",
     fontSize: 13,
     lineHeight: 19,
   },
@@ -2019,31 +2056,33 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   catalogPrice: {
-    fontFamily: appFont,
-    color: "#3d3344",
-    fontSize: 20,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f0e9df",
+    fontSize: 32,
+    fontWeight: "700",
   },
   smallButton: {
-    minHeight: 38,
-    borderRadius: 10,
-    backgroundColor: "#d88f75",
-    paddingHorizontal: 12,
+    minHeight: 40,
+    borderRadius: 999,
+    backgroundColor: "#e7ddce",
+    paddingHorizontal: 14,
     justifyContent: "center",
     alignItems: "center",
   },
   smallButtonText: {
     fontFamily: appFont,
-    color: "#fffaf7",
+    color: "#16181d",
     fontSize: 13,
     fontWeight: "800",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
   },
   checkoutFormCard: {
     flex: 1.1,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#e4d4ca",
-    backgroundColor: "#fff8f2",
+    borderColor: "#343a44",
+    backgroundColor: "rgba(13, 15, 20, 0.95)",
     padding: 12,
     gap: 9,
   },
@@ -2051,14 +2090,14 @@ const styles = StyleSheet.create({
     flex: 0.9,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#e1d2c7",
-    backgroundColor: "#fff6ef",
+    borderColor: "#343a44",
+    backgroundColor: "rgba(14, 17, 22, 0.95)",
     padding: 12,
     gap: 8,
   },
   fieldLabel: {
     fontFamily: appFont,
-    color: "#4f4452",
+    color: "#b8b8bd",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -2067,73 +2106,76 @@ const styles = StyleSheet.create({
   },
   methodButton: {
     minHeight: 42,
-    borderRadius: 11,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#dec9be",
-    backgroundColor: "#fffdfb",
+    borderColor: "#3e434e",
+    backgroundColor: "rgba(7, 9, 12, 0.98)",
     paddingHorizontal: 12,
     justifyContent: "center",
   },
   methodButtonActive: {
-    borderColor: "#ba816f",
-    backgroundColor: "#fff0e7",
+    borderColor: "#ddd4c5",
+    backgroundColor: "rgba(30, 33, 38, 0.98)",
   },
   methodText: {
     fontFamily: appFont,
-    color: "#4f4350",
+    color: "#e6e1d8",
     fontSize: 14,
     fontWeight: "700",
   },
   methodTextActive: {
-    color: "#8b5748",
+    color: "#f4efe8",
   },
   summaryImage: {
     width: "100%",
     aspectRatio: 1024 / 1536,
     borderRadius: 12,
-    backgroundColor: "#efe2d8",
+    backgroundColor: "#20242b",
   },
   summaryTitle: {
-    fontFamily: appFont,
-    color: "#3e3346",
-    fontSize: 18,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f2ede6",
+    fontSize: 30,
+    lineHeight: 31,
+    fontWeight: "700",
   },
   summaryText: {
     fontFamily: appFont,
-    color: "#675c67",
+    color: "#b0afb3",
     fontSize: 13,
   },
   summaryPrice: {
-    fontFamily: appFont,
-    color: "#372d3f",
-    fontSize: 24,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f3ede4",
+    fontSize: 34,
+    lineHeight: 34,
+    fontWeight: "700",
   },
   summaryFine: {
     fontFamily: appFont,
-    color: "#7a6f77",
+    color: "#9799a1",
     fontSize: 12,
   },
   footer: {
     marginTop: 14,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#e2d2c7",
-    backgroundColor: "rgba(255, 250, 246, 0.95)",
+    borderColor: "#2e323b",
+    backgroundColor: "rgba(8, 10, 13, 0.95)",
     paddingHorizontal: 16,
     paddingVertical: 14,
     gap: 4,
   },
   footerTitle: {
-    fontFamily: appFont,
-    color: "#372e40",
-    fontSize: 17,
-    fontWeight: "800",
+    fontFamily: displayFont,
+    color: "#f4efe8",
+    fontSize: 26,
+    lineHeight: 27,
+    fontWeight: "700",
   },
   footerText: {
     fontFamily: appFont,
-    color: "#685d67",
+    color: "#a6a7ad",
     fontSize: 13,
     lineHeight: 19,
   },
