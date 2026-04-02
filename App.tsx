@@ -65,6 +65,12 @@ type EbookCard = {
 };
 
 const SAMPLE_COVER = require("./assets/ebook-rust-in-je-hoofd.jpg");
+const FIGMA_TEXTURE = require("./assets/figma/texture-cover.jpg");
+const COLLAGE_1 = require("./assets/figma/collage-1.jpg");
+const COLLAGE_2 = require("./assets/figma/collage-2.jpg");
+const COLLAGE_3 = require("./assets/figma/collage-3.jpg");
+const COLLAGE_4 = require("./assets/figma/collage-4.jpg");
+const COLLAGE_5 = require("./assets/figma/collage-5.jpg");
 
 const ROUTES: Route[] = [
   "home",
@@ -749,37 +755,39 @@ export default function App() {
 
   const renderHome = () => (
     <>
-      <View style={[styles.heroWrap, isDesktop && styles.heroWrapDesktop]}>
-        <View style={styles.heroCard}>
+      <View style={[styles.heroExperience, isDesktop && styles.heroExperienceDesktop]}>
+        <Image source={FIGMA_TEXTURE} resizeMode="cover" style={styles.heroTexture} />
+
+        <View style={[styles.heroGlassCard, !isDesktop && styles.heroGlassCardMobile]}>
           <Text style={styles.eyebrow}>Premium ADHD Women Website</Text>
-          <View style={styles.heroTypeStack}>
-            <Text style={styles.heroTitleOutline}>FROM NOISE</Text>
-            <Text style={styles.heroTitleSolid}>TO CALM</Text>
-            <Text style={styles.heroTitleOutline}>IN YOUR MIND</Text>
-          </View>
+          <Text style={[styles.heroDisplay, !isDesktop && styles.heroDisplayMobile]}>
+            Free Ebooks{"\n"}Voor Rust in Je Hoofd
+          </Text>
           <Text style={styles.heroText}>
-            Jij hoeft niet harder te werken. Je hebt een zachter, slimmer systeem nodig dat bij
-            ADHD past. Doe de quiz en krijg direct jouw persoonlijke plan.
+            Een rustige, premium homepage die je focus vasthoudt. Doe de quiz, ontvang je type en
+            ga direct door naar de juiste e-book aankoopflow.
           </Text>
           <View style={styles.heroActions}>
             <Pressable style={styles.primaryButton} onPress={startQuiz}>
-              <Text style={styles.primaryButtonText}>Start de test</Text>
+              <Text style={styles.primaryButtonText}>Start quiz nu</Text>
             </Pressable>
             <Pressable style={styles.secondaryButton} onPress={() => goRoute("shop", "tap")}>
               <Text style={styles.secondaryButtonText}>Bekijk e-books</Text>
             </Pressable>
           </View>
-          <View style={styles.chipRow}>
-            <InfoChip text="ADHD-proof flow" icon="○" />
-            <InfoChip text="Direct resultaat" icon="○" />
-            <InfoChip text="Snelle checkout" icon="○" />
+          <View style={styles.heroStatsRow}>
+            <Text style={styles.heroStat}>Auto layout</Text>
+            <Text style={styles.heroStat}>Mobile + Desktop</Text>
+            <Text style={styles.heroStat}>High UX</Text>
           </View>
         </View>
 
-        <View style={styles.heroSideCard}>
-          <Image source={SAMPLE_COVER} style={styles.heroPoster} resizeMode="cover" />
-          <Text style={styles.sideTitle}>2.500+ vrouwen gingen je voor</Text>
-          <Text style={styles.sideBullet}>"Eindelijk rust in mijn hoofd en structuur die blijft."</Text>
+        <View style={[styles.heroCollage, !isDesktop && styles.heroCollageMobile]}>
+          <Image source={COLLAGE_1} resizeMode="cover" style={[styles.collageCard, styles.collageCardA]} />
+          <Image source={COLLAGE_2} resizeMode="cover" style={[styles.collageCard, styles.collageCardB]} />
+          <Image source={COLLAGE_3} resizeMode="cover" style={[styles.collageCard, styles.collageCardC]} />
+          <Image source={COLLAGE_4} resizeMode="cover" style={[styles.collageCard, styles.collageCardD]} />
+          <Image source={COLLAGE_5} resizeMode="cover" style={[styles.collageCard, styles.collageCardE]} />
         </View>
       </View>
 
@@ -1239,7 +1247,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#050507" />
+      <StatusBar barStyle="dark-content" backgroundColor="#e9e4d8" />
 
       <View pointerEvents="none" style={styles.bgLayer}>
         <View style={styles.bgBlobOne} />
@@ -1365,7 +1373,7 @@ function InfoChip({ text, icon }: { text: string; icon: string }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#050507",
+    backgroundColor: "#e9e4d8",
   },
   bgLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -1373,21 +1381,21 @@ const styles = StyleSheet.create({
   },
   bgBlobOne: {
     position: "absolute",
-    top: -180,
-    left: -110,
-    width: 420,
-    height: 420,
+    top: -170,
+    left: -90,
+    width: 360,
+    height: 360,
     borderRadius: 999,
-    backgroundColor: "rgba(240, 228, 212, 0.08)",
+    backgroundColor: "rgba(246, 196, 164, 0.22)",
   },
   bgBlobTwo: {
     position: "absolute",
-    right: -130,
-    top: 220,
-    width: 380,
-    height: 380,
+    right: -110,
+    top: 120,
+    width: 320,
+    height: 320,
     borderRadius: 999,
-    backgroundColor: "rgba(193, 172, 153, 0.12)",
+    backgroundColor: "rgba(120, 140, 104, 0.16)",
   },
   topBar: {
     marginHorizontal: 12,
@@ -1396,15 +1404,15 @@ const styles = StyleSheet.create({
     minHeight: 74,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#2f3136",
-    backgroundColor: "rgba(10, 11, 14, 0.88)",
+    borderColor: "#d5cebf",
+    backgroundColor: "rgba(252, 251, 248, 0.86)",
     paddingHorizontal: 18,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    shadowColor: "#000000",
-    shadowOpacity: 0.4,
-    shadowRadius: 18,
+    shadowColor: "#9e9384",
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
@@ -1415,14 +1423,14 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontFamily: displayFont,
-    color: "#f4f0ea",
+    color: "#2f2b26",
     fontSize: 23,
     fontWeight: "700",
     letterSpacing: -0.2,
   },
   brandSub: {
     fontFamily: appFont,
-    color: "#8f929a",
+    color: "#6f6a60",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1433,29 +1441,35 @@ const styles = StyleSheet.create({
     height: 58,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#666b74",
-    backgroundColor: "rgba(7, 8, 10, 0.9)",
+    borderColor: "#cbc4b7",
+    backgroundColor: "rgba(246, 196, 164, 0.24)",
     alignItems: "center",
     justifyContent: "center",
   },
   menuButtonIcon: {
     fontFamily: displayFont,
-    color: "#f4f0ea",
+    color: "#312d28",
     fontSize: 30,
     lineHeight: 32,
   },
   menuOverlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.95)",
-    paddingTop: 126,
-    paddingHorizontal: 22,
+    backgroundColor: "rgba(233, 228, 216, 0.98)",
+    paddingTop: 110,
+    paddingHorizontal: 16,
   },
   menuContent: {
     flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#d2cbbd",
+    backgroundColor: "rgba(255,255,255,0.76)",
+    paddingHorizontal: 16,
+    paddingVertical: 18,
   },
   menuContentMobile: {
     flexDirection: "column",
@@ -1470,9 +1484,9 @@ const styles = StyleSheet.create({
   },
   menuMainLink: {
     fontFamily: displayFont,
-    color: "#f2eee8",
-    fontSize: 56,
-    lineHeight: 60,
+    color: "#27231f",
+    fontSize: 52,
+    lineHeight: 54,
     fontWeight: "700",
     letterSpacing: -1.2,
   },
@@ -1493,9 +1507,9 @@ const styles = StyleSheet.create({
   },
   menuSideLink: {
     fontFamily: appFont,
-    color: "#b7b3af",
-    fontSize: 24,
-    lineHeight: 30,
+    color: "#554f47",
+    fontSize: 22,
+    lineHeight: 28,
     fontWeight: "500",
   },
   menuSideLinkMobile: {
@@ -1505,7 +1519,7 @@ const styles = StyleSheet.create({
   menuCredits: {
     marginTop: 26,
     fontFamily: appFont,
-    color: "#6f737c",
+    color: "#8b857a",
     fontSize: 14,
     textTransform: "uppercase",
     letterSpacing: 1.2,
@@ -1528,100 +1542,161 @@ const styles = StyleSheet.create({
   containerDesktop: {
     maxWidth: 1120,
   },
-  heroWrap: {
-    gap: 12,
-  },
-  heroWrapDesktop: {
-    flexDirection: "row",
-    alignItems: "stretch",
-  },
-  heroCard: {
-    flex: 1.2,
-    borderRadius: 22,
+  heroExperience: {
+    minHeight: 560,
+    borderRadius: 24,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#2e3239",
-    backgroundColor: "rgba(11, 13, 17, 0.93)",
-    padding: 18,
-    gap: 12,
-    shadowColor: "#000000",
-    shadowOpacity: 0.3,
+    borderColor: "#d8d2c4",
+    backgroundColor: "#e8e3d7",
+    position: "relative",
+    shadowColor: "#8f8779",
+    shadowOpacity: 0.18,
     shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
-  heroSideCard: {
-    flex: 0.8,
+  heroExperienceDesktop: {
+    minHeight: 640,
+  },
+  heroTexture: {
+    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
+    opacity: 0.58,
+  },
+  heroGlassCard: {
+    marginTop: 30,
+    marginLeft: 24,
+    width: "52%",
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#2e3035",
-    backgroundColor: "rgba(16, 18, 21, 0.92)",
-    padding: 18,
-    gap: 9,
+    borderColor: "rgba(255,255,255,0.45)",
+    backgroundColor: "rgba(75, 72, 67, 0.72)",
+    paddingHorizontal: 22,
+    paddingVertical: 20,
+    gap: 12,
+    zIndex: 3,
   },
-  heroPoster: {
-    width: "100%",
-    aspectRatio: 1024 / 1536,
-    borderRadius: 16,
-    backgroundColor: "#1d2026",
-    marginBottom: 6,
-  },
-  sideTitle: {
-    fontFamily: displayFont,
-    color: "#f4f0e8",
-    fontSize: 30,
-    fontWeight: "700",
-  },
-  sideBullet: {
-    fontFamily: appFont,
-    color: "#b2b0b4",
-    fontSize: 14,
-    lineHeight: 21,
+  heroGlassCardMobile: {
+    width: "91%",
+    marginLeft: 16,
+    marginTop: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 18,
   },
   eyebrow: {
     alignSelf: "flex-start",
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#3a3d44",
-    backgroundColor: "rgba(14, 16, 20, 0.85)",
+    borderColor: "rgba(246,196,164,0.7)",
+    backgroundColor: "rgba(246,196,164,0.22)",
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 5,
     fontFamily: appFont,
-    color: "#a7a9b0",
-    fontSize: 11,
+    color: "#fff6ee",
+    fontSize: 10,
     fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.9,
+    letterSpacing: 0.95,
   },
-  heroTypeStack: {
-    gap: 0,
-  },
-  heroTitleOutline: {
+  heroDisplay: {
     fontFamily: displayFont,
-    color: "#8f9298",
-    fontSize: 54,
+    color: "#ffffff",
+    fontSize: 58,
     lineHeight: 56,
-    fontWeight: "400",
-    letterSpacing: -1.2,
-    opacity: 0.62,
-  },
-  heroTitleSolid: {
-    fontFamily: displayFont,
-    color: "#f2ede5",
-    fontSize: 68,
-    lineHeight: 68,
     fontWeight: "700",
-    letterSpacing: -1.5,
+    letterSpacing: -1.1,
+  },
+  heroDisplayMobile: {
+    fontSize: 40,
+    lineHeight: 41,
+    letterSpacing: -0.7,
   },
   heroText: {
     fontFamily: appFont,
-    color: "#b8b5ba",
-    fontSize: 15,
-    lineHeight: 23,
+    color: "#efe8de",
+    fontSize: 14,
+    lineHeight: 22,
   },
   heroActions: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
+  },
+  heroStatsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  heroStat: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.42)",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    color: "#ffffff",
+    fontFamily: appFont,
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  heroCollage: {
+    position: "absolute",
+    right: 12,
+    bottom: 12,
+    top: 150,
+    width: "54%",
+  },
+  heroCollageMobile: {
+    position: "relative",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: "100%",
+    height: 248,
+    marginTop: 14,
+    paddingHorizontal: 10,
+  },
+  collageCard: {
+    position: "absolute",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.45)",
+    backgroundColor: "#d7d0c3",
+  },
+  collageCardA: {
+    width: "62%",
+    height: 170,
+    left: 0,
+    bottom: 0,
+  },
+  collageCardB: {
+    width: "52%",
+    height: 162,
+    right: 0,
+    bottom: 16,
+  },
+  collageCardC: {
+    width: "44%",
+    height: 118,
+    left: "28%",
+    top: 6,
+  },
+  collageCardD: {
+    width: "40%",
+    height: 108,
+    right: 8,
+    top: 0,
+  },
+  collageCardE: {
+    width: "34%",
+    height: 94,
+    left: 14,
+    top: 42,
   },
   premiumSection: {
     gap: 10,
@@ -1633,18 +1708,18 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#323740",
-    backgroundColor: "rgba(10, 12, 16, 0.95)",
+    borderColor: "#d8d0c2",
+    backgroundColor: "rgba(255, 252, 248, 0.9)",
     padding: 15,
     gap: 8,
   },
   recognitionCardAccent: {
-    backgroundColor: "rgba(20, 22, 27, 0.95)",
-    borderColor: "#545a63",
+    backgroundColor: "rgba(246, 196, 164, 0.2)",
+    borderColor: "#e4c6ab",
   },
   recognitionKicker: {
     fontFamily: appFont,
-    color: "#9fa3ad",
+    color: "#6f6a60",
     fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: 1,
@@ -1652,14 +1727,14 @@ const styles = StyleSheet.create({
   },
   recognitionTitle: {
     fontFamily: displayFont,
-    color: "#f2ede6",
+    color: "#2f2a24",
     fontSize: 34,
     lineHeight: 34,
     fontWeight: "700",
   },
   recognitionText: {
     fontFamily: appFont,
-    color: "#b0b0b5",
+    color: "#5f5a52",
     fontSize: 14,
     lineHeight: 21,
   },
@@ -1668,7 +1743,7 @@ const styles = StyleSheet.create({
   },
   struggleHeading: {
     fontFamily: displayFont,
-    color: "#f1ece5",
+    color: "#26221d",
     fontSize: 38,
     lineHeight: 38,
     fontWeight: "700",
@@ -1683,14 +1758,14 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#32363f",
-    backgroundColor: "rgba(11, 13, 17, 0.95)",
+    borderColor: "#d6cebf",
+    backgroundColor: "rgba(255, 252, 248, 0.88)",
     padding: 12,
     gap: 5,
   },
   struggleIndex: {
     fontFamily: appFont,
-    color: "#8c9098",
+    color: "#788c68",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1698,15 +1773,15 @@ const styles = StyleSheet.create({
   },
   struggleText: {
     fontFamily: appFont,
-    color: "#d0cfcf",
+    color: "#524d46",
     fontSize: 14,
     lineHeight: 21,
   },
   productsStrip: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#2f333c",
-    backgroundColor: "rgba(10, 12, 16, 0.95)",
+    borderColor: "#d7cfbf",
+    backgroundColor: "rgba(255, 252, 248, 0.92)",
     padding: 14,
     gap: 10,
   },
@@ -1718,7 +1793,7 @@ const styles = StyleSheet.create({
   },
   productsStripTitle: {
     fontFamily: displayFont,
-    color: "#f2eee7",
+    color: "#2d2923",
     fontSize: 34,
     lineHeight: 34,
     fontWeight: "700",
@@ -1733,8 +1808,8 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#343943",
-    backgroundColor: "rgba(14, 16, 21, 0.96)",
+    borderColor: "#ddd6c8",
+    backgroundColor: "rgba(250, 246, 240, 0.96)",
     padding: 10,
     gap: 7,
   },
@@ -1742,18 +1817,18 @@ const styles = StyleSheet.create({
     width: "100%",
     aspectRatio: 1024 / 1536,
     borderRadius: 10,
-    backgroundColor: "#20242b",
+    backgroundColor: "#ddd7cb",
   },
   productsStripCardTitle: {
     fontFamily: displayFont,
-    color: "#f0ece4",
+    color: "#2d2823",
     fontSize: 31,
     lineHeight: 31,
     fontWeight: "700",
   },
   productsStripMeta: {
     fontFamily: appFont,
-    color: "#9ea2aa",
+    color: "#788c68",
     fontSize: 13,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1762,14 +1837,14 @@ const styles = StyleSheet.create({
   communitySection: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#353a43",
-    backgroundColor: "rgba(14, 16, 20, 0.95)",
+    borderColor: "#d7cfbf",
+    backgroundColor: "rgba(250, 246, 240, 0.95)",
     padding: 16,
     gap: 8,
   },
   communityQuote: {
     fontFamily: displayFont,
-    color: "#f1ece5",
+    color: "#2d2923",
     fontSize: 42,
     lineHeight: 42,
     fontWeight: "700",
@@ -1777,7 +1852,7 @@ const styles = StyleSheet.create({
   },
   communityMeta: {
     fontFamily: appFont,
-    color: "#a0a3ab",
+    color: "#6d675d",
     fontSize: 12,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1786,19 +1861,19 @@ const styles = StyleSheet.create({
   primaryButton: {
     minHeight: 52,
     borderRadius: 999,
-    backgroundColor: "#e8dece",
+    backgroundColor: "#f6c4a4",
     paddingHorizontal: 22,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000000",
-    shadowOpacity: 0.3,
+    shadowColor: "#af8c73",
+    shadowOpacity: 0.24,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
     elevation: 2,
   },
   primaryButtonText: {
     fontFamily: appFont,
-    color: "#121318",
+    color: "#2d231b",
     fontSize: 15,
     fontWeight: "800",
     letterSpacing: 0.4,
@@ -1808,15 +1883,15 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#4d525a",
-    backgroundColor: "rgba(10, 11, 14, 0.9)",
+    borderColor: "#89a076",
+    backgroundColor: "rgba(120, 140, 104, 0.14)",
     paddingHorizontal: 20,
     justifyContent: "center",
     alignItems: "center",
   },
   secondaryButtonText: {
     fontFamily: appFont,
-    color: "#ece6dd",
+    color: "#3f5034",
     fontSize: 14,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -1829,7 +1904,7 @@ const styles = StyleSheet.create({
   },
   ghostButtonText: {
     fontFamily: appFont,
-    color: "#9d9fa5",
+    color: "#6f6a60",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -1842,8 +1917,8 @@ const styles = StyleSheet.create({
     minHeight: 32,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#3a3d43",
-    backgroundColor: "rgba(16, 17, 21, 0.92)",
+    borderColor: "#d4ccbd",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
     paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
@@ -1855,7 +1930,7 @@ const styles = StyleSheet.create({
   },
   infoChipText: {
     fontFamily: appFont,
-    color: "#cbcacd",
+    color: "#5c554d",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -1869,8 +1944,8 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#2f3238",
-    backgroundColor: "rgba(12, 14, 18, 0.92)",
+    borderColor: "#d8d0c2",
+    backgroundColor: "rgba(255, 252, 248, 0.9)",
     padding: 14,
     gap: 6,
   },
@@ -1880,27 +1955,27 @@ const styles = StyleSheet.create({
   },
   featureTitle: {
     fontFamily: displayFont,
-    color: "#f3eee7",
+    color: "#2e2a24",
     fontSize: 28,
     fontWeight: "700",
   },
   featureText: {
     fontFamily: appFont,
-    color: "#b0afb3",
+    color: "#5f5a52",
     fontSize: 14,
     lineHeight: 21,
   },
   bannerCard: {
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#32353b",
-    backgroundColor: "rgba(13, 15, 20, 0.95)",
+    borderColor: "#d6cebe",
+    backgroundColor: "rgba(255, 252, 248, 0.94)",
     padding: 20,
     gap: 10,
   },
   bannerEyebrow: {
     fontFamily: appFont,
-    color: "#92959e",
+    color: "#6f6a60",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1908,7 +1983,7 @@ const styles = StyleSheet.create({
   },
   bannerTitle: {
     fontFamily: displayFont,
-    color: "#f3eee7",
+    color: "#2e2923",
     fontSize: 44,
     lineHeight: 44,
     fontWeight: "700",
@@ -1917,19 +1992,19 @@ const styles = StyleSheet.create({
   pageCard: {
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#2b2e33",
-    backgroundColor: "rgba(9, 11, 14, 0.93)",
+    borderColor: "#d8d0c2",
+    backgroundColor: "rgba(255, 252, 248, 0.92)",
     padding: 18,
     gap: 12,
-    shadowColor: "#000000",
-    shadowOpacity: 0.3,
+    shadowColor: "#a69a88",
+    shadowOpacity: 0.14,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
   sectionTitle: {
     fontFamily: displayFont,
-    color: "#f4efe8",
+    color: "#2e2923",
     fontSize: 52,
     lineHeight: 51,
     fontWeight: "700",
@@ -1937,7 +2012,7 @@ const styles = StyleSheet.create({
   },
   sectionLead: {
     fontFamily: appFont,
-    color: "#a7a8ae",
+    color: "#5f5950",
     fontSize: 15,
     lineHeight: 23,
   },
@@ -1950,13 +2025,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 10,
     borderRadius: 999,
-    backgroundColor: "#272b31",
+    backgroundColor: "#ddd6ca",
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
     borderRadius: 999,
-    backgroundColor: "#ebe1d1",
+    backgroundColor: "#788c68",
   },
   progressLabel: {
     minWidth: 50,
@@ -1964,19 +2039,19 @@ const styles = StyleSheet.create({
     fontFamily: appFont,
     fontSize: 12,
     fontWeight: "700",
-    color: "#8f9199",
+    color: "#6b655b",
   },
   questionCard: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#32353c",
-    backgroundColor: "rgba(16, 18, 22, 0.94)",
+    borderColor: "#d7d0c2",
+    backgroundColor: "rgba(255, 252, 248, 0.95)",
     padding: 16,
     gap: 12,
   },
   questionCount: {
     fontFamily: appFont,
-    color: "#94969c",
+    color: "#6e675d",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1984,7 +2059,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontFamily: displayFont,
-    color: "#f4efe8",
+    color: "#302b25",
     fontSize: 39,
     lineHeight: 41,
     fontWeight: "700",
@@ -1992,7 +2067,7 @@ const styles = StyleSheet.create({
   },
   questionHint: {
     fontFamily: appFont,
-    color: "#9c9ea6",
+    color: "#6a645b",
     fontSize: 14,
   },
   optionsWrap: {
@@ -2002,26 +2077,26 @@ const styles = StyleSheet.create({
     minHeight: 66,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#353840",
-    backgroundColor: "rgba(8, 10, 12, 0.96)",
+    borderColor: "#d8d0c1",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
     paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   optionPressed: {
-    backgroundColor: "rgba(32, 35, 40, 0.96)",
+    backgroundColor: "rgba(246,196,164,0.28)",
     transform: [{ scale: 0.985 }],
   },
   optionLabel: {
     fontFamily: appFont,
-    color: "#ece7df",
+    color: "#3a342c",
     fontSize: 17,
     fontWeight: "700",
   },
   optionMeta: {
     fontFamily: appFont,
-    color: "#8e9198",
+    color: "#788c68",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -2031,8 +2106,8 @@ const styles = StyleSheet.create({
     minHeight: 44,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#444850",
-    backgroundColor: "rgba(11, 12, 14, 0.98)",
+    borderColor: "#d0c8b8",
+    backgroundColor: "rgba(255,255,255,0.78)",
     paddingHorizontal: 16,
     justifyContent: "center",
     alignItems: "center",
@@ -2042,39 +2117,39 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontFamily: appFont,
-    color: "#eee9e0",
+    color: "#4f483f",
     fontSize: 14,
     fontWeight: "700",
   },
   inlineMessageCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#353941",
-    backgroundColor: "rgba(15, 17, 20, 0.94)",
+    borderColor: "#d8d0c2",
+    backgroundColor: "rgba(255, 252, 248, 0.9)",
     padding: 14,
     gap: 8,
   },
   inlineMessageTitle: {
     fontFamily: displayFont,
-    color: "#f2eee7",
+    color: "#2f2b24",
     fontSize: 34,
     fontWeight: "700",
   },
   inlineMessageText: {
     fontFamily: appFont,
-    color: "#afb0b6",
+    color: "#5f5850",
     fontSize: 14,
   },
   resultBadge: {
     alignSelf: "flex-start",
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#3d4149",
-    backgroundColor: "rgba(13, 15, 19, 0.9)",
+    borderColor: "#d5cebf",
+    backgroundColor: "rgba(255,255,255,0.78)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     fontFamily: appFont,
-    color: "#9fa2a9",
+    color: "#6a645c",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -2090,34 +2165,34 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#333740",
-    backgroundColor: "rgba(13, 15, 20, 0.94)",
+    borderColor: "#d8d1c2",
+    backgroundColor: "rgba(255, 252, 248, 0.9)",
     padding: 12,
     gap: 6,
   },
   infoBlockTitle: {
     fontFamily: displayFont,
-    color: "#f2ede6",
+    color: "#312c25",
     fontSize: 28,
     fontWeight: "700",
   },
   infoBlockText: {
     fontFamily: appFont,
-    color: "#b1b1b6",
+    color: "#5f5950",
     fontSize: 14,
     lineHeight: 20,
   },
   recommendCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#343841",
-    backgroundColor: "rgba(13, 15, 19, 0.94)",
+    borderColor: "#d8d0c2",
+    backgroundColor: "rgba(255, 252, 248, 0.9)",
     padding: 12,
     gap: 8,
   },
   recommendLabel: {
     fontFamily: appFont,
-    color: "#93969f",
+    color: "#6f6a60",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -2134,7 +2209,7 @@ const styles = StyleSheet.create({
     width: "100%",
     aspectRatio: 1024 / 1536,
     borderRadius: 12,
-    backgroundColor: "#1f2227",
+    backgroundColor: "#ddd7cb",
   },
   recommendCopy: {
     flex: 1,
@@ -2142,14 +2217,14 @@ const styles = StyleSheet.create({
   },
   recommendTitle: {
     fontFamily: displayFont,
-    color: "#f3eee7",
+    color: "#2f2a24",
     fontSize: 34,
     lineHeight: 34,
     fontWeight: "700",
   },
   recommendText: {
     fontFamily: appFont,
-    color: "#b0afb3",
+    color: "#5f5950",
     fontSize: 14,
     lineHeight: 21,
   },
@@ -2163,17 +2238,17 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: "#6a6f78",
-    backgroundColor: "#101217",
+    borderColor: "#9aa890",
+    backgroundColor: "#ffffff",
   },
   captureDotActive: {
-    borderColor: "#ebe0cf",
-    backgroundColor: "#ebe0cf",
+    borderColor: "#788c68",
+    backgroundColor: "#788c68",
   },
   captureText: {
     flex: 1,
     fontFamily: appFont,
-    color: "#c0bec2",
+    color: "#5f5950",
     fontSize: 14,
   },
   emailWrap: {
@@ -2183,12 +2258,12 @@ const styles = StyleSheet.create({
     minHeight: 48,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#3d424b",
-    backgroundColor: "rgba(9, 11, 14, 0.98)",
+    borderColor: "#d5cebf",
+    backgroundColor: "rgba(255,255,255,0.88)",
     paddingHorizontal: 14,
     fontFamily: appFont,
     fontSize: 15,
-    color: "#f0ebe3",
+    color: "#2f2a24",
   },
   textArea: {
     minHeight: 116,
@@ -2197,7 +2272,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontFamily: appFont,
-    color: "#f17d87",
+    color: "#bc4f5d",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -2206,7 +2281,7 @@ const styles = StyleSheet.create({
   },
   noteText: {
     fontFamily: appFont,
-    color: "#9dc9ae",
+    color: "#5f7b4e",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -2221,8 +2296,8 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#323741",
-    backgroundColor: "rgba(13, 15, 19, 0.95)",
+    borderColor: "#d8d0c2",
+    backgroundColor: "rgba(255,252,248,0.9)",
     padding: 10,
     gap: 7,
   },
@@ -2230,31 +2305,31 @@ const styles = StyleSheet.create({
     width: "32.4%",
   },
   catalogCardActive: {
-    borderColor: "#7a7e87",
-    backgroundColor: "rgba(23, 26, 31, 0.98)",
+    borderColor: "#e1b890",
+    backgroundColor: "rgba(246,196,164,0.2)",
   },
   catalogImage: {
     width: "100%",
     aspectRatio: 1024 / 1536,
     borderRadius: 10,
-    backgroundColor: "#20242b",
+    backgroundColor: "#ddd7cb",
   },
   catalogTitle: {
     fontFamily: displayFont,
-    color: "#f1ece4",
+    color: "#2f2a24",
     fontSize: 31,
     lineHeight: 32,
     fontWeight: "700",
   },
   catalogSubtitle: {
     fontFamily: appFont,
-    color: "#acacb2",
+    color: "#5f5950",
     fontSize: 13,
     lineHeight: 18,
   },
   catalogDescription: {
     fontFamily: appFont,
-    color: "#a9a9af",
+    color: "#5f5950",
     fontSize: 13,
     lineHeight: 19,
   },
@@ -2267,21 +2342,21 @@ const styles = StyleSheet.create({
   },
   catalogPrice: {
     fontFamily: displayFont,
-    color: "#f0e9df",
+    color: "#2f2a24",
     fontSize: 32,
     fontWeight: "700",
   },
   smallButton: {
     minHeight: 40,
     borderRadius: 999,
-    backgroundColor: "#e7ddce",
+    backgroundColor: "#f6c4a4",
     paddingHorizontal: 14,
     justifyContent: "center",
     alignItems: "center",
   },
   smallButtonText: {
     fontFamily: appFont,
-    color: "#16181d",
+    color: "#2d231b",
     fontSize: 13,
     fontWeight: "800",
     letterSpacing: 0.4,
@@ -2291,8 +2366,8 @@ const styles = StyleSheet.create({
     flex: 1.1,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#343a44",
-    backgroundColor: "rgba(13, 15, 20, 0.95)",
+    borderColor: "#d8d1c2",
+    backgroundColor: "rgba(255,252,248,0.9)",
     padding: 12,
     gap: 9,
   },
@@ -2300,14 +2375,14 @@ const styles = StyleSheet.create({
     flex: 0.9,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#343a44",
-    backgroundColor: "rgba(14, 17, 22, 0.95)",
+    borderColor: "#d8d1c2",
+    backgroundColor: "rgba(255,252,248,0.9)",
     padding: 12,
     gap: 8,
   },
   fieldLabel: {
     fontFamily: appFont,
-    color: "#b8b8bd",
+    color: "#5f5950",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -2318,74 +2393,74 @@ const styles = StyleSheet.create({
     minHeight: 42,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#3e434e",
-    backgroundColor: "rgba(7, 9, 12, 0.98)",
+    borderColor: "#d5cebf",
+    backgroundColor: "rgba(255,255,255,0.84)",
     paddingHorizontal: 12,
     justifyContent: "center",
   },
   methodButtonActive: {
-    borderColor: "#ddd4c5",
-    backgroundColor: "rgba(30, 33, 38, 0.98)",
+    borderColor: "#788c68",
+    backgroundColor: "rgba(120,140,104,0.15)",
   },
   methodText: {
     fontFamily: appFont,
-    color: "#e6e1d8",
+    color: "#3f3a32",
     fontSize: 14,
     fontWeight: "700",
   },
   methodTextActive: {
-    color: "#f4efe8",
+    color: "#3c5130",
   },
   summaryImage: {
     width: "100%",
     aspectRatio: 1024 / 1536,
     borderRadius: 12,
-    backgroundColor: "#20242b",
+    backgroundColor: "#ddd7cb",
   },
   summaryTitle: {
     fontFamily: displayFont,
-    color: "#f2ede6",
+    color: "#2f2a24",
     fontSize: 30,
     lineHeight: 31,
     fontWeight: "700",
   },
   summaryText: {
     fontFamily: appFont,
-    color: "#b0afb3",
+    color: "#5f5950",
     fontSize: 13,
   },
   summaryPrice: {
     fontFamily: displayFont,
-    color: "#f3ede4",
+    color: "#2f2a24",
     fontSize: 34,
     lineHeight: 34,
     fontWeight: "700",
   },
   summaryFine: {
     fontFamily: appFont,
-    color: "#9799a1",
+    color: "#6e675d",
     fontSize: 12,
   },
   footer: {
     marginTop: 14,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#2e323b",
-    backgroundColor: "rgba(8, 10, 13, 0.95)",
+    borderColor: "#d5cebf",
+    backgroundColor: "rgba(255,252,248,0.88)",
     paddingHorizontal: 16,
     paddingVertical: 14,
     gap: 4,
   },
   footerTitle: {
     fontFamily: displayFont,
-    color: "#f4efe8",
+    color: "#2f2a24",
     fontSize: 26,
     lineHeight: 27,
     fontWeight: "700",
   },
   footerText: {
     fontFamily: appFont,
-    color: "#a6a7ad",
+    color: "#5f5950",
     fontSize: 13,
     lineHeight: 19,
   },

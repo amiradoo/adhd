@@ -38,8 +38,8 @@ function writeManifest() {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#050507",
-    theme_color: "#050507",
+    background_color: "#e9e4d8",
+    theme_color: "#e9e4d8",
     icons: [
       {
         src: "/icons/icon-192.png",
@@ -172,18 +172,18 @@ function patchIndexHtml() {
   );
 
   const headInjection = `
-    <meta name="theme-color" content="#050507" />
+    <meta name="theme-color" content="#e9e4d8" />
     <meta name="application-name" content="Focuskracht" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Focuskracht" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <style id="focuskracht-webapp">
       :root { color-scheme: light; }
-      html, body { background: #050507; overscroll-behavior-y: none; }
+      html, body { background: #e9e4d8; overscroll-behavior-y: none; }
       body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     </style>`;
 

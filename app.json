@@ -29,8 +29,8 @@
       "favicon": "./assets/favicon.png",
       "name": "Focuskracht ADHD Quiz",
       "shortName": "Focuskracht",
-      "themeColor": "#050507",
-      "backgroundColor": "#050507",
+      "themeColor": "#e9e4d8",
+      "backgroundColor": "#e9e4d8",
       "display": "standalone"
     }
   }
