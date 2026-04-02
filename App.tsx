@@ -67,6 +67,7 @@ const TYPE_PRIORITY: AdhdType[] = [
 
 const ANSWER_OPTIONS = ["Nooit", "Soms", "Vaak", "Altijd"];
 const OPTION_POINTS = [0, 1, 2, 3];
+const OPTION_VIBE_LABELS = ["Rustig", "Wisselend", "Herkenbaar", "Vol raak"];
 
 const TYPE_PROFILES: Record<AdhdType, TypeProfile> = {
   overwhelm_queen: {
@@ -337,6 +338,7 @@ function isValidEmail(email: string): boolean {
 export default function App() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 860;
+  const isSmallPhone = width < 376;
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -351,6 +353,7 @@ export default function App() {
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
   const quizDone = answers.length >= QUESTIONS.length;
   const progress = Math.min(answers.length, QUESTIONS.length) / QUESTIONS.length;
@@ -361,6 +364,10 @@ export default function App() {
   const stepLabel = quizDone
     ? "Resultaat klaar"
     : `Vraag ${currentQuestionNumber} van ${QUESTIONS.length}`;
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["2%", "100%"],
+  });
 
   const resultType = useMemo(() => {
     if (!quizDone) return null;
@@ -391,6 +398,15 @@ export default function App() {
       }),
     ]).start();
   }, [questionIndex, quizDone, fadeAnim, slideAnim]);
+
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: progress,
+      duration: 240,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false,
+    }).start();
+  }, [progress, progressAnim]);
 
   useEffect(() => {
     if (Platform.OS !== "web") return;
@@ -562,11 +578,14 @@ export default function App() {
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        bounces={false}
       >
         <View style={[styles.container, isDesktop && styles.containerDesktop]}>
           <View style={styles.headerCard}>
             <Text style={styles.badge}>Self test</Text>
-            <Text style={styles.title}>Welke ADHD type ben jij?</Text>
+            <Text style={[styles.title, isSmallPhone && styles.titleSmall]}>
+              Welke ADHD type ben jij?
+            </Text>
             <Text style={styles.subtitle}>
               12 snelle vragen, 1 per scherm. Daarna krijg je direct een persoonlijk plan.
             </Text>
@@ -580,7 +599,7 @@ export default function App() {
 
           <View style={styles.progressWrap}>
             <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: `${Math.max(progress * 100, 2)}%` }]} />
+              <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
             </View>
             <Text style={styles.progressLabel}>
               {answeredCount}/{QUESTIONS.length}
@@ -600,7 +619,9 @@ export default function App() {
               <Text style={styles.questionCount}>
                 Vraag {questionIndex + 1} van {QUESTIONS.length}
               </Text>
-              <Text style={styles.questionText}>{question.question}</Text>
+              <Text style={[styles.questionText, isSmallPhone && styles.questionTextSmall]}>
+                {question.question}
+              </Text>
               <Text style={styles.questionHint}>{question.hint}</Text>
 
               <View style={styles.optionsWrap}>
@@ -612,7 +633,7 @@ export default function App() {
                     disabled={animating}
                   >
                     <Text style={styles.optionLabel}>{label}</Text>
-                    <Text style={styles.optionMeta}>Tap</Text>
+                    <Text style={styles.optionMeta}>{OPTION_VIBE_LABELS[index]}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -633,7 +654,9 @@ export default function App() {
             resultProfile && (
               <View style={styles.resultCard}>
                 <Text style={styles.resultBadge}>Jouw uitslag</Text>
-                <Text style={styles.resultTitle}>Jij bent: {resultProfile.name}</Text>
+                <Text style={[styles.resultTitle, isSmallPhone && styles.resultTitleSmall]}>
+                  Jij bent: {resultProfile.name}
+                </Text>
                 <Text style={styles.resultDescription}>{resultProfile.description}</Text>
 
                 <View style={[styles.blocksWrap, isDesktop && styles.blocksWrapDesktop]}>
@@ -938,6 +961,10 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.9,
   },
+  titleSmall: {
+    fontSize: 30,
+    lineHeight: 35,
+  },
   subtitle: {
     fontFamily: appFont,
     color: "#665d66",
@@ -981,6 +1008,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 10 },
     elevation: 2,
+    minHeight: 430,
   },
   questionCount: {
     fontFamily: appFont,
@@ -998,6 +1026,10 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.8,
   },
+  questionTextSmall: {
+    fontSize: 27,
+    lineHeight: 33,
+  },
   questionHint: {
     fontFamily: appFont,
     color: "#6f646f",
@@ -1007,19 +1039,24 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   optionButton: {
-    minHeight: 64,
-    borderRadius: 16,
+    minHeight: 70,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#e8d4ca",
-    backgroundColor: "#fff8f1",
-    paddingHorizontal: 14,
+    borderColor: "#e5d2c8",
+    backgroundColor: "#fff9f3",
+    paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    shadowColor: "#c9aa9e",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
   },
   optionButtonPressed: {
-    backgroundColor: "#ffefe4",
-    transform: [{ scale: 0.99 }],
+    backgroundColor: "#ffefe6",
+    transform: [{ scale: 0.985 }],
   },
   optionLabel: {
     fontFamily: appFont,
@@ -1029,11 +1066,11 @@ const styles = StyleSheet.create({
   },
   optionMeta: {
     fontFamily: appFont,
-    color: "#9a8a80",
-    fontSize: 12,
+    color: "#8f7f76",
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.7,
+    letterSpacing: 0.75,
   },
   footerRow: {
     marginTop: 2,
@@ -1093,6 +1130,10 @@ const styles = StyleSheet.create({
     lineHeight: 39,
     fontWeight: "800",
     letterSpacing: -0.9,
+  },
+  resultTitleSmall: {
+    fontSize: 31,
+    lineHeight: 36,
   },
   resultDescription: {
     fontFamily: appFont,
@@ -1361,7 +1402,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: "#dfcec4",
-    backgroundColor: "rgba(255, 251, 247, 0.98)",
+    backgroundColor: "rgba(255, 251, 247, 0.94)",
     paddingHorizontal: 10,
     paddingVertical: 8,
     flexDirection: "row",

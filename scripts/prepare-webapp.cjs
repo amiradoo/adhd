@@ -124,21 +124,43 @@ function patchIndexHtml() {
   let html = fs.readFileSync(indexPath, "utf8");
 
   html = html.replace('<html lang="en">', '<html lang="nl">');
-  html = html.replace(/<meta name="theme-color"[^>]*>\s*/g, "");
+  html = html.replace(
+    /<meta name="viewport" content="[^"]*"\s*\/>/,
+    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />',
+  );
+
+  html = html.replace(/\s*<meta name="theme-color"[^>]*>\s*/g, "\n");
+  html = html.replace(/\s*<meta name="mobile-web-app-capable"[^>]*>\s*/g, "\n");
+  html = html.replace(/\s*<meta name="apple-mobile-web-app-capable"[^>]*>\s*/g, "\n");
+  html = html.replace(/\s*<meta name="apple-mobile-web-app-status-bar-style"[^>]*>\s*/g, "\n");
+  html = html.replace(/\s*<meta name="apple-mobile-web-app-title"[^>]*>\s*/g, "\n");
+  html = html.replace(/\s*<meta name="application-name"[^>]*>\s*/g, "\n");
+  html = html.replace(/\s*<link rel="manifest"[^>]*>\s*/g, "\n");
+  html = html.replace(/\s*<link rel="apple-touch-icon"[^>]*>\s*/g, "\n");
+  html = html.replace(/\s*<link rel="icon" type="image\/png" sizes="192x192"[^>]*>\s*/g, "\n");
+  html = html.replace(/\s*<style id="focuskracht-webapp">[\s\S]*?<\/style>\s*/g, "\n");
+  html = html.replace(
+    /\s*<script>\s*if \("serviceWorker" in navigator\)[\s\S]*?service-worker\.js[\s\S]*?<\/script>\s*/g,
+    "\n",
+  );
 
   const headInjection = `
     <meta name="theme-color" content="#f8efe8" />
+    <meta name="application-name" content="Focuskracht" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Focuskracht" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />`;
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <style id="focuskracht-webapp">
+      :root { color-scheme: light; }
+      html, body { background: #f8efe8; overscroll-behavior-y: none; }
+      body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    </style>`;
 
-  if (!html.includes("manifest.webmanifest")) {
-    html = html.replace("</head>", `${headInjection}\n  </head>`);
-  }
+  html = html.replace("</head>", `${headInjection}\n  </head>`);
 
   const swRegistration = `
     <script>
@@ -149,9 +171,7 @@ function patchIndexHtml() {
       }
     </script>`;
 
-  if (!html.includes("serviceWorker.register")) {
-    html = html.replace("</body>", `${swRegistration}\n</body>`);
-  }
+  html = html.replace("</body>", `${swRegistration}\n</body>`);
 
   fs.writeFileSync(indexPath, html, "utf8");
 }
