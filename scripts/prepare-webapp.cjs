@@ -20,6 +20,7 @@ const destinationIcons = {
 
 const manifestPath = path.join(distDir, "manifest.webmanifest");
 const serviceWorkerPath = path.join(distDir, "service-worker.js");
+const buildId = Date.now().toString();
 
 function ensureFileExists(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -37,8 +38,8 @@ function writeManifest() {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#f8efe8",
-    theme_color: "#f8efe8",
+    background_color: "#050507",
+    theme_color: "#050507",
     icons: [
       {
         src: "/icons/icon-192.png",
@@ -63,7 +64,7 @@ function writeManifest() {
 }
 
 function writeServiceWorker() {
-  const serviceWorker = `const CACHE_NAME = "focuskracht-quiz-v1";
+  const serviceWorker = `const CACHE_NAME = "focuskracht-quiz-${buildId}";
 const SHELL_ASSETS = [
   "/",
   "/index.html",
@@ -97,19 +98,45 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  const isNavigation = request.mode === "navigate";
+  const isStaticAsset =
+    url.pathname.startsWith("/icons/") ||
+    url.pathname.startsWith("/_expo/static/") ||
+    url.pathname === "/manifest.webmanifest";
+
+  if (isNavigation) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put("/index.html", responseClone));
+          }
+          return response;
+        })
+        .catch(() => caches.match("/index.html"))
+    );
+    return;
+  }
+
+  if (!isStaticAsset) {
+    event.respondWith(fetch(request).catch(() => caches.match(request)));
+    return;
+  }
+
   event.respondWith(
     caches.match(request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(request)
+      const networkRequest = fetch(request)
         .then((response) => {
           if (!response || response.status !== 200 || response.type === "opaque") return response;
 
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
           return response;
-        })
-        .catch(() => caches.match("/index.html"));
+        });
+
+      if (cached) return cached;
+      return networkRequest.catch(() => caches.match("/index.html"));
     })
   );
 });
@@ -145,7 +172,7 @@ function patchIndexHtml() {
   );
 
   const headInjection = `
-    <meta name="theme-color" content="#f8efe8" />
+    <meta name="theme-color" content="#050507" />
     <meta name="application-name" content="Focuskracht" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -156,7 +183,7 @@ function patchIndexHtml() {
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <style id="focuskracht-webapp">
       :root { color-scheme: light; }
-      html, body { background: #f8efe8; overscroll-behavior-y: none; }
+      html, body { background: #050507; overscroll-behavior-y: none; }
       body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     </style>`;
 
@@ -164,11 +191,36 @@ function patchIndexHtml() {
 
   const swRegistration = `
     <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function () {
-          navigator.serviceWorker.register("/service-worker.js").catch(function () {});
+      (function () {
+        if (!("serviceWorker" in navigator)) return;
+        window.addEventListener("load", async function () {
+          try {
+            const resetKey = "focuskracht-sw-reset-v3";
+            const hasReset = window.localStorage && localStorage.getItem(resetKey) === "done";
+
+            if (!hasReset) {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(registrations.map((registration) => registration.unregister()));
+
+              if ("caches" in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map((key) => caches.delete(key)));
+              }
+
+              if (window.localStorage) {
+                localStorage.setItem(resetKey, "done");
+              }
+
+              window.location.reload();
+              return;
+            }
+
+            navigator.serviceWorker
+              .register("/service-worker.js?v=${buildId}", { scope: "/" })
+              .catch(function () {});
+          } catch (error) {}
         });
-      }
+      })();
     </script>`;
 
   html = html.replace("</body>", `${swRegistration}\n</body>`);
