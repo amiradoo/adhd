@@ -32,6 +32,7 @@
   --color-background: var(--cream-50);
   --color-foreground: var(--ink-900);
   --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
 }
 
 * {
@@ -59,6 +60,15 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+}
+
+.glass {
+  background: color-mix(in srgb, var(--cream-100) 84%, white 16%);
+  backdrop-filter: blur(10px);
+}
+
+.soft-shadow {
+  box-shadow: 0 18px 40px rgba(142, 103, 77, 0.16);
 }
 
 :focus-visible {
