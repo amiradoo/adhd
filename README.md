@@ -30,10 +30,29 @@ Direct web starten:
 npm run web
 ```
 
+## Netlify deploy
+
+Deze app is Netlify-klaar met [netlify.toml](/Users/amiradouairi/Documents/New%20project/adhd-webshop-native/netlify.toml).
+
+Belangrijk:
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+- SPA redirect: alle routes gaan naar `index.html`
+
+Stappen in Netlify:
+
+1. Koppel je GitHub repo: `amiradoo/adhd`.
+2. Bij Build settings laat je staan:
+3. Build command: `npm run build`
+4. Publish directory: `dist`
+5. Deploy site.
+
 ## Bestanden
 
 - `App.tsx`: volledige app met alle pagina's en checkoutflow
 - `app.json`: Expo app-config
+- `netlify.toml`: Netlify build + redirect config
 
 ## Downloadlink aanpassen
 
@@ -42,22 +61,3 @@ In `App.tsx` staat een placeholder:
 - `DOWNLOAD_URL = "https://example.com/focuskracht.pdf"`
 
 Vervang dit met je echte e-book PDF-link.
-
-## GitHub klaarzetten
-
-Ik kon hier niet automatisch pushen, omdat `git` op deze machine momenteel geblokkeerd is door een niet-geaccepteerde Xcode-licentie.
-
-Als je dit één keer uitvoert in Terminal:
-
-```bash
-sudo xcodebuild -license
-```
-
-Dan kan ik in de volgende stap direct voor je doen:
-
-1. `git init`
-2. eerste commit maken
-3. remote GitHub repo koppelen
-4. pushen naar GitHub
-
-# adhd
