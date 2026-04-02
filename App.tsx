@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
-  Linking,
-  Modal,
+  Animated,
+  Easing,
+  Image,
   Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
@@ -15,766 +17,667 @@ import {
   View,
 } from "react-native";
 
-type Page = "home" | "about" | "faq" | "contact" | "privacy" | "checkout" | "thanks";
+type AdhdType =
+  | "overwhelm_queen"
+  | "uitsteller"
+  | "chaos_creator"
+  | "hyperfocus_hustler"
+  | "people_pleaser"
+  | "burnout_builder";
 
-type MenuItem = {
-  key: Exclude<Page, "thanks">;
-  label: string;
+type TypeProfile = {
+  name: string;
+  description: string;
+  struggles: string[];
+  solutions: string[];
+  ebookTitle: string;
 };
 
-type PaymentMethod = "iDEAL" | "Kaart" | "PayPal";
-type Country = "Nederland" | "Belgie" | "Anders";
+type QuizQuestion = {
+  id: number;
+  question: string;
+  hint: string;
+  weights: Partial<Record<AdhdType, number>>;
+};
 
-const MENU_ITEMS: MenuItem[] = [
-  { key: "home", label: "Home" },
-  { key: "about", label: "Over ons" },
-  { key: "faq", label: "FAQ" },
-  { key: "contact", label: "Contact" },
-  { key: "privacy", label: "Privacy" },
-  { key: "checkout", label: "Checkout" },
+type EbookCard = {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: AdhdType;
+  cover?: any;
+  sample?: boolean;
+};
+
+const SAMPLE_COVER = require("./assets/ebook-rust-in-je-hoofd.jpg");
+
+const TYPE_PRIORITY: AdhdType[] = [
+  "overwhelm_queen",
+  "uitsteller",
+  "chaos_creator",
+  "hyperfocus_hustler",
+  "people_pleaser",
+  "burnout_builder",
 ];
 
-const PAYMENT_METHODS: PaymentMethod[] = ["iDEAL", "Kaart", "PayPal"];
-const COUNTRIES: Country[] = ["Nederland", "Belgie", "Anders"];
-const DOWNLOAD_URL = "https://example.com/focuskracht.pdf";
+const ANSWER_OPTIONS = ["Nooit", "Soms", "Vaak", "Altijd"];
+const OPTION_POINTS = [0, 1, 2, 3];
 
-const QUICK_CARDS = [
+const TYPE_PROFILES: Record<AdhdType, TypeProfile> = {
+  overwhelm_queen: {
+    name: "Overwhelm Queen",
+    description:
+      "Jij voelt alles tegelijk. Je brein staat vaak op 20 tabbladen tegelijk open en je wilt alles goed doen.",
+    struggles: [
+      "To-do lijst voelt meteen te groot",
+      "Je raakt overprikkeld van details",
+      "Je denkt veel na en komt moeilijk tot rust",
+    ],
+    solutions: [
+      "Werk met 1 focusblok van 20 minuten",
+      "Kies elke dag alleen je top 3 prioriteiten",
+      "Gebruik een vaste reset-routine in de avond",
+    ],
+    ebookTitle: "Rust in je Hoofd",
+  },
+  uitsteller: {
+    name: "Uitsteller",
+    description:
+      "Je weet wat je moet doen, maar starten voelt zwaar. Met tijdsdruk kun je ineens wel heel veel.",
+    struggles: [
+      "Belangrijke taken schuiven door",
+      "Je begint pas bij stress of schuldgevoel",
+      "Je baalt achteraf van uitstel",
+    ],
+    solutions: [
+      "Start met een mini-actie van 5 minuten",
+      "Gebruik korte timers voor een snelle kickstart",
+      "Beloon starten, niet perfectie",
+    ],
+    ebookTitle: "Van Uitstel naar Actie",
+  },
+  chaos_creator: {
+    name: "Chaos Creator",
+    description:
+      "Jij hebt veel energie en ideeen, maar structuur blijft niet vanzelf staan. Je leeft in snelle schakels.",
+    struggles: [
+      "Rommel stapelt zich snel op",
+      "Je springt van taak naar taak",
+      "Je vergeet kleine maar belangrijke dingen",
+    ],
+    solutions: [
+      "Werk met visuele checklists",
+      "Plan een dagelijkse 15-min reset",
+      "Bundel vergelijkbare taken in 1 blok",
+    ],
+    ebookTitle: "Orde in je Chaos",
+  },
+  hyperfocus_hustler: {
+    name: "Hyperfocus Hustler",
+    description:
+      "Als je iets leuk vindt ga je all-in. Je kunt superproductief zijn, maar balans en herstel verdwijnen snel.",
+    struggles: [
+      "Tijdsbesef raakt weg tijdens focus",
+      "Pauzes en zelfzorg schieten erbij in",
+      "Je crasht na een productiviteitspiek",
+    ],
+    solutions: [
+      "Zet stop-alarmen per 45 minuten",
+      "Plan herstel net zo hard als werk",
+      "Eindig focusblokken met een korte cooling down",
+    ],
+    ebookTitle: "Hyperfocus Zonder Crash",
+  },
+  people_pleaser: {
+    name: "People Pleaser",
+    description:
+      "Je voelt anderen goed aan en helpt graag. Daardoor zet je jezelf vaak op plek twee.",
+    struggles: [
+      "Te vaak ja zeggen terwijl je nee voelt",
+      "Je agenda raakt vol met andermans prioriteiten",
+      "Grenzen aangeven voelt ongemakkelijk",
+    ],
+    solutions: [
+      "Gebruik een standaard vriendelijke nee-zin",
+      "Plan eerst tijd voor je eigen topprioriteit",
+      "Check dagelijks: wat heb IK vandaag nodig",
+    ],
+    ebookTitle: "Grenzen Zonder Schuldgevoel",
+  },
+  burnout_builder: {
+    name: "Burn-out Builder",
+    description:
+      "Je bent sterk en loyaal, maar gaat vaak te lang door. Je lichaam geeft pas laat een stop-signaal.",
+    struggles: [
+      "Doorgaan terwijl je leeg bent",
+      "Herstelmomenten overslaan",
+      "Moe zijn maar toch blijven presteren",
+    ],
+    solutions: [
+      "Meet je energie dagelijks op schaal 1-10",
+      "Bouw niet-onderhandelbare rustblokken in",
+      "Werk met stopregels voor overbelasting",
+    ],
+    ebookTitle: "Energie Zonder Opbranden",
+  },
+};
+
+const EBOOK_CATALOG: EbookCard[] = [
   {
-    icon: "🧩",
-    title: "Korte hoofdstukken",
-    text: "1 idee per blok, zodat je aandacht niet overbelast raakt.",
+    id: "rust-hoofd",
+    title: "Rust in je Hoofd",
+    subtitle: "Voor vrouwen die altijd aan staan",
+    type: "overwhelm_queen",
+    cover: SAMPLE_COVER,
+    sample: true,
   },
   {
-    icon: "🧭",
-    title: "Duidelijke structuur",
-    text: "Rustige volgorde en heldere koppen zonder ruis.",
+    id: "uitstel-actie",
+    title: "Van Uitstel naar Actie",
+    subtitle: "Starten zonder stress",
+    type: "uitsteller",
   },
   {
-    icon: "⚡",
-    title: "Actie in 5 minuten",
-    text: "Direct toepasbare stappen met snel resultaat.",
+    id: "chaos-reset",
+    title: "Orde in je Chaos",
+    subtitle: "Structuur die blijft",
+    type: "chaos_creator",
+  },
+  {
+    id: "focus-crash",
+    title: "Hyperfocus Zonder Crash",
+    subtitle: "Productief met balans",
+    type: "hyperfocus_hustler",
+  },
+  {
+    id: "grenzen",
+    title: "Grenzen Zonder Schuldgevoel",
+    subtitle: "People pleasing loslaten",
+    type: "people_pleaser",
+  },
+  {
+    id: "energie",
+    title: "Energie Zonder Opbranden",
+    subtitle: "Duurzame rust en ritme",
+    type: "burnout_builder",
   },
 ];
 
-const TESTIMONIALS = [
-  "Eindelijk kort en duidelijk. Ik kon direct starten.",
-  "De checklists werken top als mijn hoofd vol zit.",
-  "Van kopen naar toepassen in dezelfde dag.",
+const QUESTIONS: QuizQuestion[] = [
+  {
+    id: 1,
+    question: "Hoe vaak voelt je dag direct te vol zodra je wakker wordt?",
+    hint: "Eerste gevoel in de ochtend",
+    weights: { overwhelm_queen: 1.2, burnout_builder: 0.6 },
+  },
+  {
+    id: 2,
+    question: "Hoe vaak stel je een taak uit tot de druk hoog wordt?",
+    hint: "Startgedrag en deadlines",
+    weights: { uitsteller: 1.3, overwhelm_queen: 0.4 },
+  },
+  {
+    id: 3,
+    question: "Hoe vaak begin je aan meerdere dingen tegelijk?",
+    hint: "Aandacht verspreiden",
+    weights: { chaos_creator: 1.2, overwhelm_queen: 0.5 },
+  },
+  {
+    id: 4,
+    question: "Hoe vaak verlies je tijdsbesef als je in iets zit?",
+    hint: "Hyperfocus momenten",
+    weights: { hyperfocus_hustler: 1.3, burnout_builder: 0.6 },
+  },
+  {
+    id: 5,
+    question: "Hoe vaak zeg je ja terwijl je eigenlijk nee voelt?",
+    hint: "Grenzen en sociale druk",
+    weights: { people_pleaser: 1.3, burnout_builder: 0.5 },
+  },
+  {
+    id: 6,
+    question: "Hoe vaak ga je door terwijl je energie op is?",
+    hint: "Doorgaan op lege batterij",
+    weights: { burnout_builder: 1.4, people_pleaser: 0.4 },
+  },
+  {
+    id: 7,
+    question: "Hoe vaak voelt je hoofd chaotisch terwijl je wel wil presteren?",
+    hint: "Interne ruis",
+    weights: { overwhelm_queen: 1.0, chaos_creator: 0.8 },
+  },
+  {
+    id: 8,
+    question: "Hoe vaak kun je pas starten als het bijna te laat is?",
+    hint: "Uitstel patroon",
+    weights: { uitsteller: 1.2, burnout_builder: 0.4 },
+  },
+  {
+    id: 9,
+    question: "Hoe vaak neem je emoties of problemen van anderen over?",
+    hint: "Emotionele belasting",
+    weights: { people_pleaser: 1.2, overwhelm_queen: 0.5 },
+  },
+  {
+    id: 10,
+    question: "Hoe vaak vergeet je pauzes, eten of water tijdens focus?",
+    hint: "Zelfzorg tijdens werk",
+    weights: { hyperfocus_hustler: 1.0, burnout_builder: 1.0 },
+  },
+  {
+    id: 11,
+    question: "Hoe vaak wordt je planning ingehaald door spontane impulsen?",
+    hint: "Impuls versus planning",
+    weights: { chaos_creator: 1.1, hyperfocus_hustler: 0.6 },
+  },
+  {
+    id: 12,
+    question: "Hoe vaak voel je je schuldig als je rust pakt?",
+    hint: "Rust en zelfbeeld",
+    weights: { burnout_builder: 1.1, people_pleaser: 0.9 },
+  },
 ];
 
-const ALL_PAGES: Page[] = ["home", "about", "faq", "contact", "privacy", "checkout", "thanks"];
-
-function parsePageFromHash(hash: string): Page | null {
-  const cleaned = hash.replace(/^#\/?/, "").trim().toLowerCase();
-  if (!cleaned) return "home";
-
-  const candidate = cleaned as Page;
-  if (ALL_PAGES.includes(candidate)) {
-    return candidate;
-  }
-
-  return null;
+function emptyScores(): Record<AdhdType, number> {
+  return {
+    overwhelm_queen: 0,
+    uitsteller: 0,
+    chaos_creator: 0,
+    hyperfocus_hustler: 0,
+    people_pleaser: 0,
+    burnout_builder: 0,
+  };
 }
 
-function getInitialPage(): Page {
-  if (Platform.OS !== "web" || typeof window === "undefined") {
-    return "home";
-  }
+function determineType(answers: number[]): AdhdType {
+  const scores = emptyScores();
 
-  return parsePageFromHash(window.location.hash) ?? "home";
+  QUESTIONS.forEach((question, index) => {
+    const points = OPTION_POINTS[answers[index] ?? 0] ?? 0;
+
+    Object.entries(question.weights).forEach(([type, weight]) => {
+      const key = type as AdhdType;
+      scores[key] += points * (weight ?? 0);
+    });
+  });
+
+  return TYPE_PRIORITY.reduce((best, current) =>
+    scores[current] > scores[best] ? current : best,
+  );
+}
+
+function formatPlan(profile: TypeProfile): string {
+  const struggles = profile.struggles.map((item) => `- ${item}`).join("\n");
+  const solutions = profile.solutions.map((item) => `- ${item}`).join("\n");
+
+  return [
+    `Jij bent: ${profile.name}`,
+    "",
+    profile.description,
+    "",
+    "3 herkenbare struggles:",
+    struggles,
+    "",
+    "3 oplossingen:",
+    solutions,
+    "",
+    `Aanbevolen e-book: ${profile.ebookTitle}`,
+  ].join("\n");
+}
+
+function isValidEmail(email: string): boolean {
+  return /.+@.+\..+/.test(email.trim());
 }
 
 export default function App() {
   const { width } = useWindowDimensions();
-  const isWide = width >= 940;
-  const scrollRef = useRef<ScrollView>(null);
+  const isDesktop = width >= 860;
 
-  const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [animating, setAnimating] = useState(false);
 
-  const [checkoutName, setCheckoutName] = useState("");
-  const [checkoutEmail, setCheckoutEmail] = useState("");
-  const [country, setCountry] = useState<Country>("Nederland");
-  const [coupon, setCoupon] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("iDEAL");
+  const [emailCapture, setEmailCapture] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [note, setNote] = useState("");
 
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactMessage, setContactMessage] = useState("");
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
-  const [thanksMethod, setThanksMethod] = useState<PaymentMethod>("iDEAL");
-  const [thanksExpress, setThanksExpress] = useState(false);
-  const [thanksName, setThanksName] = useState("");
+  const quizDone = answers.length >= QUESTIONS.length;
+  const progress = Math.min(answers.length, QUESTIONS.length) / QUESTIONS.length;
+  const question = QUESTIONS[questionIndex];
 
-  const subtitle = useMemo(() => {
-    if (currentPage === "thanks") {
-      const safeName = thanksName.trim();
-      const prefix = safeName ? `${safeName}, ` : "";
-      return thanksExpress
-        ? `${prefix}je hebt gekozen voor express checkout met ${thanksMethod}.`
-        : `${prefix}je betaling met ${thanksMethod} is gelukt.`;
-    }
+  const resultType = useMemo(() => {
+    if (!quizDone) return null;
+    return determineType(answers);
+  }, [answers, quizDone]);
 
-    return "";
-  }, [currentPage, thanksExpress, thanksMethod, thanksName]);
+  const resultProfile = resultType ? TYPE_PROFILES[resultType] : null;
+  const recommendedEbook = resultType
+    ? EBOOK_CATALOG.find((item) => item.type === resultType) ?? EBOOK_CATALOG[0]
+    : EBOOK_CATALOG[0];
 
   useEffect(() => {
-    if (Platform.OS !== "web" || typeof window === "undefined") {
-      return;
-    }
+    slideAnim.setValue(18);
+    fadeAnim.setValue(0);
 
-    const onHashChange = () => {
-      const pageFromHash = parsePageFromHash(window.location.hash);
-      if (pageFromHash) {
-        setCurrentPage((previousPage) => (previousPage === pageFromHash ? previousPage : pageFromHash));
-      }
-    };
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 240,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [questionIndex, quizDone, fadeAnim, slideAnim]);
 
-    window.addEventListener("hashchange", onHashChange);
-    onHashChange();
-    return () => window.removeEventListener("hashchange", onHashChange);
-  }, []);
+  const goNext = (optionIndex: number) => {
+    if (animating || quizDone) return;
 
-  useEffect(() => {
-    if (Platform.OS !== "web" || typeof window === "undefined") {
-      return;
-    }
-
-    const nextHash = `#/${currentPage}`;
-    if (window.location.hash !== nextHash) {
-      window.history.replaceState(null, "", nextHash);
-    }
-  }, [currentPage]);
-
-  const navigate = (page: Page) => {
-    setCurrentPage(page);
-    setMenuOpen(false);
-
-    if (Platform.OS === "web" && typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
+    setAnimating(true);
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -16,
+        duration: 170,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setAnswers((prev) => [...prev, optionIndex]);
+      setQuestionIndex((prev) => prev + 1);
+      setAnimating(false);
+    });
   };
 
-  const openCheckout = () => navigate("checkout");
+  const goBack = () => {
+    if (animating || questionIndex === 0 || quizDone) return;
 
-  const completeOrder = (express: boolean) => {
-    const finalName = express ? "Express koper" : checkoutName.trim();
-    const finalEmail = express ? "" : checkoutEmail.trim();
+    setAnswers((prev) => prev.slice(0, -1));
+    setQuestionIndex((prev) => Math.max(0, prev - 1));
+  };
 
-    if (!express) {
-      if (!finalName || !finalEmail.includes("@")) {
-        Alert.alert("Controleer je gegevens", "Vul een naam en geldig e-mailadres in.");
+  const resetQuiz = () => {
+    setAnswers([]);
+    setQuestionIndex(0);
+    setAnimating(false);
+    setEmailCapture(false);
+    setEmail("");
+    setEmailError("");
+    setNote("");
+  };
+
+  const downloadPlan = async () => {
+    if (!resultProfile || !resultType) return;
+
+    if (emailCapture && !isValidEmail(email)) {
+      setEmailError("Vul een geldig e-mailadres in.");
+      return;
+    }
+
+    setEmailError("");
+    const content = formatPlan(resultProfile);
+
+    if (Platform.OS === "web") {
+      const web = globalThis as any;
+      if (web?.document && web?.Blob && web?.URL) {
+        const blob = new web.Blob([content], { type: "text/plain;charset=utf-8" });
+        const url = web.URL.createObjectURL(blob);
+        const anchor = web.document.createElement("a");
+        anchor.href = url;
+        anchor.download = `adhd-plan-${resultType}.txt`;
+        web.document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        web.URL.revokeObjectURL(url);
+      }
+    } else {
+      await Share.share({
+        title: `Plan: ${resultProfile.name}`,
+        message: content,
+      });
+    }
+
+    setNote(emailCapture ? "Plan gedownload en e-mail vastgelegd." : "Plan gedownload.");
+  };
+
+  const shareResult = async () => {
+    if (!resultProfile) return;
+
+    const shareText = `Ik deed de quiz: ${resultProfile.name}. Doe de test ook en pak je ADHD-plan.`;
+
+    if (Platform.OS === "web") {
+      const web = globalThis as any;
+      const pageUrl = web?.location?.href ?? "";
+
+      if (web?.navigator?.share) {
+        await web.navigator.share({
+          title: "Welke ADHD type ben jij?",
+          text: shareText,
+          url: pageUrl,
+        });
+        return;
+      }
+
+      if (web?.navigator?.clipboard?.writeText) {
+        await web.navigator.clipboard.writeText(`${shareText} ${pageUrl}`.trim());
+        Alert.alert("Gekopieerd", "Je resultaat staat klaar om te delen op WhatsApp of TikTok.");
         return;
       }
     }
 
-    setThanksExpress(express);
-    setThanksMethod(paymentMethod);
-    setThanksName(finalName);
-    navigate("thanks");
+    await Share.share({
+      title: "Welke ADHD type ben jij?",
+      message: shareText,
+    });
   };
-
-  const sendContact = async () => {
-    const safeName = contactName.trim();
-    const safeEmail = contactEmail.trim();
-    const safeMessage = contactMessage.trim();
-
-    if (!safeName || !safeEmail.includes("@") || !safeMessage) {
-      Alert.alert("Formulier onvolledig", "Vul naam, e-mail en bericht in.");
-      return;
-    }
-
-    const subject = encodeURIComponent("Contact via Focuskracht app");
-    const body = encodeURIComponent(
-      `Naam: ${safeName}\nE-mail: ${safeEmail}\n\nBericht:\n${safeMessage}`,
-    );
-    const mailTo = `mailto:info@focuskracht.nl?subject=${subject}&body=${body}`;
-
-    const canOpen = await Linking.canOpenURL(mailTo);
-    if (!canOpen) {
-      Alert.alert("Mail niet beschikbaar", "Open handmatig: info@focuskracht.nl");
-      return;
-    }
-
-    await Linking.openURL(mailTo);
-  };
-
-  const openDownload = async () => {
-    const canOpen = await Linking.canOpenURL(DOWNLOAD_URL);
-    if (!canOpen) {
-      Alert.alert("Downloadlink", "Vervang DOWNLOAD_URL in App.tsx door je echte PDF link.");
-      return;
-    }
-    await Linking.openURL(DOWNLOAD_URL);
-  };
-
-  const sectionWidthStyle = isWide ? styles.sectionWide : styles.sectionNarrow;
-  const showFloatingBar = !isWide && currentPage !== "checkout" && currentPage !== "thanks";
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5fbff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f8efe8" />
 
-      <View pointerEvents="none" style={styles.backgroundDecor}>
-        <View style={styles.blobOne} />
-        <View style={styles.blobTwo} />
-        <View style={styles.blobThree} />
-      </View>
-
-      <View style={[styles.header, isWide && styles.headerWide]}>
-        <Pressable style={styles.brand} onPress={() => navigate("home")}>
-          <View style={styles.brandMark} />
-          <Text style={styles.brandText}>Focuskracht</Text>
-        </Pressable>
-
-        {isWide ? (
-          <View style={styles.desktopNav}>
-            {MENU_ITEMS.map((item) => {
-              const active = currentPage === item.key;
-              return (
-                <Pressable
-                  key={item.key}
-                  style={[styles.desktopLink, active && styles.desktopLinkActive]}
-                  onPress={() => navigate(item.key)}
-                >
-                  <Text style={[styles.desktopLinkText, active && styles.desktopLinkTextActive]}>
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-            <Pressable style={styles.desktopCta} onPress={openCheckout}>
-              <Text style={styles.desktopCtaText}>Koop nu</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <Pressable
-            accessibilityLabel="Open menu"
-            style={styles.menuButton}
-            onPress={() => setMenuOpen(true)}
-          >
-            <View style={styles.menuLine} />
-            <View style={styles.menuLine} />
-            <View style={styles.menuLine} />
-          </Pressable>
-        )}
+      <View pointerEvents="none" style={styles.bgLayer}>
+        <View style={styles.bgBlobOne} />
+        <View style={styles.bgBlobTwo} />
       </View>
 
       <ScrollView
-        ref={scrollRef}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, isDesktop && styles.scrollDesktop]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.pageWrap, sectionWidthStyle]}>{renderPage()}</View>
-        <Footer onNavigate={navigate} isWide={isWide} />
-      </ScrollView>
-
-      {showFloatingBar && (
-        <View style={styles.floatingBar}>
-          <Text style={styles.floatingTitle}>Focuskracht €19</Text>
-          <Pressable style={styles.primaryButton} onPress={openCheckout}>
-            <Text style={styles.primaryButtonText}>Direct kopen</Text>
-          </Pressable>
-        </View>
-      )}
-
-      <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
-        <View style={styles.menuLayer}>
-          <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)} />
-          <View style={styles.menuSheet}>
-            <Text style={styles.menuTitle}>Menu</Text>
-            {MENU_ITEMS.map((item) => {
-              const active = currentPage === item.key;
-              return (
-                <Pressable
-                  key={item.key}
-                  style={[styles.menuItem, active && styles.menuItemActive]}
-                  onPress={() => navigate(item.key)}
-                >
-                  <Text style={[styles.menuItemText, active && styles.menuItemTextActive]}>{item.label}</Text>
-                </Pressable>
-              );
-            })}
+        <View style={[styles.container, isDesktop && styles.containerDesktop]}>
+          <View style={styles.headerCard}>
+            <Text style={styles.badge}>Self test</Text>
+            <Text style={styles.title}>Welke ADHD type ben jij?</Text>
+            <Text style={styles.subtitle}>
+              12 snelle vragen, 1 per scherm. Daarna krijg je direct een persoonlijk plan.
+            </Text>
           </View>
+
+          <View style={styles.progressWrap}>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${Math.max(progress * 100, 2)}%` }]} />
+            </View>
+            <Text style={styles.progressLabel}>
+              {Math.min(answers.length, QUESTIONS.length)}/{QUESTIONS.length}
+            </Text>
+          </View>
+
+          {!quizDone && question ? (
+            <Animated.View
+              style={[
+                styles.questionCard,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateX: slideAnim }],
+                },
+              ]}
+            >
+              <Text style={styles.questionCount}>
+                Vraag {questionIndex + 1} van {QUESTIONS.length}
+              </Text>
+              <Text style={styles.questionText}>{question.question}</Text>
+              <Text style={styles.questionHint}>{question.hint}</Text>
+
+              <View style={styles.optionsWrap}>
+                {ANSWER_OPTIONS.map((label, index) => (
+                  <Pressable
+                    key={label}
+                    onPress={() => goNext(index)}
+                    style={({ pressed }) => [styles.optionButton, pressed && styles.optionButtonPressed]}
+                    disabled={animating}
+                  >
+                    <Text style={styles.optionLabel}>{label}</Text>
+                    <Text style={styles.optionMeta}>Tap</Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <View style={styles.footerRow}>
+                <Pressable
+                  onPress={goBack}
+                  style={[styles.backButton, questionIndex === 0 && styles.backButtonDisabled]}
+                  disabled={questionIndex === 0}
+                >
+                  <Text style={styles.backButtonText}>Vorige</Text>
+                </Pressable>
+              </View>
+            </Animated.View>
+          ) : (
+            resultProfile && (
+              <View style={styles.resultCard}>
+                <Text style={styles.resultBadge}>Jouw uitslag</Text>
+                <Text style={styles.resultTitle}>Jij bent: {resultProfile.name}</Text>
+                <Text style={styles.resultDescription}>{resultProfile.description}</Text>
+
+                <View style={[styles.blocksWrap, isDesktop && styles.blocksWrapDesktop]}>
+                  <View style={styles.infoBlock}>
+                    <Text style={styles.blockTitle}>3 struggles</Text>
+                    {resultProfile.struggles.map((item) => (
+                      <Text key={item} style={styles.blockItem}>
+                        • {item}
+                      </Text>
+                    ))}
+                  </View>
+
+                  <View style={styles.infoBlock}>
+                    <Text style={styles.blockTitle}>3 oplossingen</Text>
+                    {resultProfile.solutions.map((item) => (
+                      <Text key={item} style={styles.blockItem}>
+                        • {item}
+                      </Text>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.recoWrap}>
+                  <Text style={styles.recoLabel}>Aanbevolen e-book</Text>
+                  <View style={styles.recoCard}>
+                    {recommendedEbook.cover ? (
+                      <Image source={recommendedEbook.cover} resizeMode="cover" style={styles.recoImage} />
+                    ) : (
+                      <View style={styles.recoPlaceholder}>
+                        <Text style={styles.recoPlaceholderText}>Preview</Text>
+                      </View>
+                    )}
+                    <View style={styles.recoCopy}>
+                      <Text style={styles.recoTitle}>{recommendedEbook.title}</Text>
+                      <Text style={styles.recoSubtitle}>{recommendedEbook.subtitle}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <Pressable
+                  onPress={() => setEmailCapture((prev) => !prev)}
+                  style={styles.captureRow}
+                >
+                  <View style={[styles.captureDot, emailCapture && styles.captureDotActive]} />
+                  <Text style={styles.captureText}>Stuur mijn resultaat ook naar e-mail (optioneel)</Text>
+                </Pressable>
+
+                {emailCapture && (
+                  <View style={styles.emailWrap}>
+                    <TextInput
+                      value={email}
+                      onChangeText={(value) => {
+                        setEmail(value);
+                        if (emailError) setEmailError("");
+                      }}
+                      placeholder="jij@email.com"
+                      placeholderTextColor="#9d9089"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      style={styles.emailInput}
+                    />
+                    {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+                  </View>
+                )}
+
+                <View style={styles.actionStack}>
+                  <Pressable style={styles.downloadButton} onPress={downloadPlan}>
+                    <Text style={styles.downloadButtonText}>Download jouw plan</Text>
+                  </Pressable>
+
+                  <Pressable style={styles.shareButton} onPress={shareResult}>
+                    <Text style={styles.shareButtonText}>Deel resultaat</Text>
+                  </Pressable>
+
+                  <Pressable style={styles.restartButton} onPress={resetQuiz}>
+                    <Text style={styles.restartButtonText}>Quiz opnieuw doen</Text>
+                  </Pressable>
+                </View>
+
+                {note ? <Text style={styles.noteText}>{note}</Text> : null}
+
+                <View style={styles.catalogSection}>
+                  <Text style={styles.catalogTitle}>Alle e-books los bekijken</Text>
+                  <View style={styles.catalogGrid}>
+                    {EBOOK_CATALOG.map((ebook) => {
+                      const isRecommended = ebook.type === resultType;
+                      return (
+                        <View
+                          key={ebook.id}
+                          style={[styles.catalogCard, isRecommended && styles.catalogCardRecommended]}
+                        >
+                          {ebook.cover ? (
+                            <Image source={ebook.cover} resizeMode="cover" style={styles.catalogImage} />
+                          ) : (
+                            <View style={styles.catalogPlaceholder}>
+                              <Text style={styles.catalogPlaceholderText}>Binnenkort</Text>
+                            </View>
+                          )}
+
+                          <Text style={styles.catalogCardTitle}>{ebook.title}</Text>
+                          <Text style={styles.catalogCardSubtitle}>{ebook.subtitle}</Text>
+                          {ebook.sample ? <Text style={styles.sampleTag}>Voorbeeld cover</Text> : null}
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              </View>
+            )
+          )}
         </View>
-      </Modal>
+      </ScrollView>
     </SafeAreaView>
   );
-
-  function renderPage() {
-    switch (currentPage) {
-      case "home":
-        return (
-          <>
-            <View style={[styles.heroWrap, isWide && styles.heroWrapWide]}>
-              <View style={styles.heroCopy}>
-                <Text style={styles.eyebrow}>ADHD-proof webshop</Text>
-                <Text style={styles.heroTitle}>Meer rust, meer focus, sneller starten</Text>
-                <Text style={styles.heroText}>
-                  Focuskracht is een praktisch e-book met korte stappen en duidelijke actiepunten.
-                  Geen overload, wel directe toepasbaarheid.
-                </Text>
-
-                <View style={styles.actionRow}>
-                  <Pressable style={styles.primaryButton} onPress={openCheckout}>
-                    <Text style={styles.primaryButtonText}>Koop direct voor €19</Text>
-                  </Pressable>
-                  <Pressable style={styles.secondaryButton} onPress={() => navigate("about")}>
-                    <Text style={styles.secondaryButtonText}>Bekijk meer</Text>
-                  </Pressable>
-                </View>
-
-                <View style={styles.trustGrid}>
-                  <TrustChip text="2 minuten checkout" icon="⚡" />
-                  <TrustChip text="Directe download" icon="📥" />
-                  <TrustChip text="ADHD-vriendelijk" icon="🧠" />
-                </View>
-              </View>
-
-              <View style={styles.heroCard}>
-                <Text style={styles.pill}>E-book</Text>
-                <Text style={styles.cardTitle}>Focuskracht</Text>
-                <Text style={styles.cardText}>
-                  76 pagina's met routines, checklists en een 7-daagse reset om impuls om te zetten
-                  naar actie.
-                </Text>
-                <Pressable style={styles.primaryButton} onPress={openCheckout}>
-                  <Text style={styles.primaryButtonText}>Nu bestellen</Text>
-                </Pressable>
-              </View>
-            </View>
-
-            <View style={[styles.cardGrid, isWide && styles.cardGridWide]}>
-              {QUICK_CARDS.map((card) => (
-                <View key={card.title} style={styles.infoCard}>
-                  <Text style={styles.infoIcon}>{card.icon}</Text>
-                  <Text style={styles.infoTitle}>{card.title}</Text>
-                  <Text style={styles.infoText}>{card.text}</Text>
-                </View>
-              ))}
-            </View>
-
-            <View style={[styles.productWrap, isWide && styles.productWrapWide]}>
-              <Pressable style={styles.productCard} onPress={openCheckout}>
-                <Text style={styles.pill}>Bestseller</Text>
-                <Text style={styles.productTitle}>Focuskracht ADHD E-book</Text>
-                <Text style={styles.productText}>
-                  Praktische methodes voor focus, planning, impulscontrole en energiemanagement.
-                </Text>
-                <View style={styles.bulletList}>
-                  <Text style={styles.bullet}>• 76 pagina's met visuele samenvattingen</Text>
-                  <Text style={styles.bullet}>• Printbare weekplanner en noodchecklist</Text>
-                  <Text style={styles.bullet}>• Bonus: 7 dagen reset-schema</Text>
-                </View>
-                <View style={styles.priceRow}>
-                  <Text style={styles.price}>€19 eenmalig</Text>
-                  <Text style={styles.inlineCta}>Bestel direct</Text>
-                </View>
-              </Pressable>
-
-              <View style={styles.stepsCard}>
-                <Text style={styles.stepsTitle}>Zo simpel is bestellen</Text>
-                <Text style={styles.step}>1. Klik op bestel direct</Text>
-                <Text style={styles.step}>2. Kies je betaalmethode</Text>
-                <Text style={styles.step}>3. Download direct na betaling</Text>
-                <Pressable style={styles.secondaryButton} onPress={openCheckout}>
-                  <Text style={styles.secondaryButtonText}>Naar checkout</Text>
-                </Pressable>
-              </View>
-            </View>
-
-            <View style={[styles.testimonialRow, isWide && styles.testimonialRowWide]}>
-              {TESTIMONIALS.map((quote) => (
-                <View key={quote} style={styles.quoteCard}>
-                  <Text style={styles.quote}>"{quote}"</Text>
-                </View>
-              ))}
-            </View>
-
-            <View style={styles.banner}>
-              <View>
-                <Text style={styles.eyebrow}>Vasthouden van momentum</Text>
-                <Text style={styles.bannerTitle}>Pak je focus nu, niet later</Text>
-              </View>
-              <Pressable style={styles.primaryButton} onPress={openCheckout}>
-                <Text style={styles.primaryButtonText}>Koop nu voor €19</Text>
-              </Pressable>
-            </View>
-          </>
-        );
-
-      case "about":
-        return (
-          <>
-            <Text style={styles.eyebrow}>Over ons</Text>
-            <Text style={styles.pageTitle}>Gebouwd voor mensen die snel afgeleid raken</Text>
-            <Text style={styles.pageLead}>
-              Focuskracht combineert gedragspsychologie met praktische ADHD-coaching in korte,
-              scan-vriendelijke blokken.
-            </Text>
-
-            <View style={[styles.cardGrid, isWide && styles.cardGridWide]}>
-              <View style={styles.pageCard}>
-                <Text style={styles.pageCardTitle}>Waarom Focuskracht?</Text>
-                <Text style={styles.pageCardText}>Veel content is te lang en te abstract.</Text>
-                <Text style={styles.bullet}>• Korte hoofdstukken</Text>
-                <Text style={styles.bullet}>• Één hoofdactie per onderdeel</Text>
-                <Text style={styles.bullet}>• Visueel ritme voor aandacht</Text>
-              </View>
-
-              <View style={styles.pageCard}>
-                <Text style={styles.pageCardTitle}>Onze aanpak</Text>
-                <Text style={styles.pageCardText}>
-                  We minimaliseren keuzestress en maken direct starten zo makkelijk mogelijk.
-                </Text>
-                <Text style={styles.bullet}>• Duidelijke knoppen met hoog contrast</Text>
-                <Text style={styles.bullet}>• Snelle checkoutflow</Text>
-                <Text style={styles.bullet}>• Focus op doen, niet twijfelen</Text>
-              </View>
-            </View>
-
-            <View style={styles.banner}>
-              <View>
-                <Text style={styles.eyebrow}>Klaar om te starten?</Text>
-                <Text style={styles.bannerTitle}>Bestel vandaag en begin meteen</Text>
-              </View>
-              <Pressable style={styles.primaryButton} onPress={openCheckout}>
-                <Text style={styles.primaryButtonText}>Naar checkout</Text>
-              </Pressable>
-            </View>
-          </>
-        );
-
-      case "faq":
-        return (
-          <>
-            <Text style={styles.eyebrow}>FAQ</Text>
-            <Text style={styles.pageTitle}>Snel antwoord op je vragen</Text>
-            <Text style={styles.pageLead}>Kort en duidelijk zodat je direct verder kunt.</Text>
-
-            <View style={styles.stackGap}>
-              <FaqCard
-                question="Hoe ontvang ik het e-book?"
-                answer="Direct na betaling zie je de downloadknop en ontvang je een e-mail."
-              />
-              <FaqCard
-                question="Welke betaalmethodes zijn er?"
-                answer="iDEAL, kaart en PayPal."
-              />
-              <FaqCard
-                question="Is het geschikt voor volwassenen met ADHD?"
-                answer="Ja, de inhoud is primair voor volwassenen en studenten gemaakt."
-              />
-              <FaqCard
-                question="Kan ik op mobiel lezen?"
-                answer="Ja, het bestand werkt op telefoon, tablet en laptop."
-              />
-              <FaqCard
-                question="Wat als downloaden mislukt?"
-                answer="Stuur een bericht via contact; je krijgt snel een nieuwe link."
-              />
-            </View>
-
-            <View style={styles.banner}>
-              <View>
-                <Text style={styles.eyebrow}>Geen twijfel meer</Text>
-                <Text style={styles.bannerTitle}>Klik door en rond je aankoop af</Text>
-              </View>
-              <Pressable style={styles.primaryButton} onPress={openCheckout}>
-                <Text style={styles.primaryButtonText}>Bestel nu</Text>
-              </Pressable>
-            </View>
-          </>
-        );
-
-      case "contact":
-        return (
-          <>
-            <Text style={styles.eyebrow}>Contact</Text>
-            <Text style={styles.pageTitle}>Stuur direct een bericht</Text>
-            <Text style={styles.pageLead}>We reageren snel. Gebruik wat voor jou het makkelijkst is.</Text>
-
-            <View style={[styles.productWrap, isWide && styles.productWrapWide]}>
-              <View style={styles.pageCard}>
-                <Text style={styles.pageCardTitle}>Contactformulier</Text>
-                <TextInput
-                  value={contactName}
-                  onChangeText={setContactName}
-                  placeholder="Naam"
-                  placeholderTextColor="#7b8ca8"
-                  style={styles.input}
-                />
-                <TextInput
-                  value={contactEmail}
-                  onChangeText={setContactEmail}
-                  placeholder="E-mail"
-                  placeholderTextColor="#7b8ca8"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  style={styles.input}
-                />
-                <TextInput
-                  value={contactMessage}
-                  onChangeText={setContactMessage}
-                  placeholder="Bericht"
-                  placeholderTextColor="#7b8ca8"
-                  multiline
-                  style={[styles.input, styles.textArea]}
-                />
-                <Pressable style={styles.primaryButton} onPress={sendContact}>
-                  <Text style={styles.primaryButtonText}>Verstuur bericht</Text>
-                </Pressable>
-              </View>
-
-              <View style={styles.pageCard}>
-                <Text style={styles.pageCardTitle}>Directe opties</Text>
-                <Text style={styles.bullet}>• E-mail: info@focuskracht.nl</Text>
-                <Text style={styles.bullet}>• Reactietijd: meestal binnen 24 uur</Text>
-                <Text style={styles.bullet}>• Tip: zet je bestelnummer in je onderwerp</Text>
-                <Pressable style={styles.secondaryButton} onPress={openCheckout}>
-                  <Text style={styles.secondaryButtonText}>Liever direct bestellen</Text>
-                </Pressable>
-              </View>
-            </View>
-          </>
-        );
-
-      case "privacy":
-        return (
-          <>
-            <Text style={styles.eyebrow}>Privacy</Text>
-            <Text style={styles.pageTitle}>Je gegevens blijven veilig</Text>
-            <Text style={styles.pageLead}>
-              We vragen alleen data die nodig is voor bestelling, levering en support.
-            </Text>
-
-            <View style={styles.pageCard}>
-              <Text style={styles.pageCardTitle}>Wat we bewaren</Text>
-              <Text style={styles.bullet}>• Naam en e-mail voor levering</Text>
-              <Text style={styles.bullet}>• Betaalinfo via je betaalprovider</Text>
-              <Text style={styles.bullet}>• Bestelgegevens voor support</Text>
-
-              <Text style={[styles.pageCardTitle, styles.topSpacing]}>Wat we niet doen</Text>
-              <Text style={styles.bullet}>• Geen verkoop van data aan derden</Text>
-              <Text style={styles.bullet}>• Geen overbodige nieuwsbrieven</Text>
-              <Text style={styles.bullet}>• Geen niet-functionele tracking</Text>
-
-              <Text style={styles.smallText}>Vragen: privacy@focuskracht.nl</Text>
-            </View>
-          </>
-        );
-
-      case "checkout":
-        return (
-          <>
-            <Text style={styles.eyebrow}>Checkout</Text>
-            <Text style={styles.pageTitle}>Rond je bestelling af in 2 minuten</Text>
-
-            <View style={styles.chipRow}>
-              <StepChip text="1 Gegevens" />
-              <StepChip text="2 Betalen" />
-              <StepChip text="3 Download" />
-            </View>
-
-            <View style={[styles.productWrap, isWide && styles.productWrapWide]}>
-              <View style={styles.pageCard}>
-                <Text style={styles.pageCardTitle}>Jouw gegevens</Text>
-                <TextInput
-                  value={checkoutName}
-                  onChangeText={setCheckoutName}
-                  placeholder="Naam"
-                  placeholderTextColor="#7b8ca8"
-                  style={styles.input}
-                />
-                <TextInput
-                  value={checkoutEmail}
-                  onChangeText={setCheckoutEmail}
-                  placeholder="E-mail"
-                  placeholderTextColor="#7b8ca8"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  style={styles.input}
-                />
-
-                <Text style={styles.fieldLabel}>Land</Text>
-                <View style={styles.choiceRow}>
-                  {COUNTRIES.map((countryOption) => {
-                    const active = countryOption === country;
-                    return (
-                      <Pressable
-                        key={countryOption}
-                        style={[styles.choiceButton, active && styles.choiceButtonActive]}
-                        onPress={() => setCountry(countryOption)}
-                      >
-                        <Text style={[styles.choiceText, active && styles.choiceTextActive]}>
-                          {countryOption}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <TextInput
-                  value={coupon}
-                  onChangeText={setCoupon}
-                  placeholder="Code (optioneel)"
-                  placeholderTextColor="#7b8ca8"
-                  style={styles.input}
-                />
-
-                <Text style={styles.pageCardTitle}>Kies je betaalmethode</Text>
-                <View style={styles.stackGap}>
-                  {PAYMENT_METHODS.map((method) => {
-                    const active = method === paymentMethod;
-                    return (
-                      <Pressable
-                        key={method}
-                        style={[styles.methodButton, active && styles.methodButtonActive]}
-                        onPress={() => setPaymentMethod(method)}
-                      >
-                        <Text style={[styles.methodText, active && styles.methodTextActive]}>{method}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <Pressable style={styles.primaryButton} onPress={() => completeOrder(false)}>
-                  <Text style={styles.primaryButtonText}>Betaal nu met {paymentMethod}</Text>
-                </Pressable>
-
-                <Pressable style={styles.secondaryButton} onPress={() => completeOrder(true)}>
-                  <Text style={styles.secondaryButtonText}>Express checkout</Text>
-                </Pressable>
-              </View>
-
-              <View style={styles.pageCard}>
-                <Text style={styles.pageCardTitle}>Je bestelling</Text>
-                <Text style={styles.bullet}>• Focuskracht ADHD E-book (PDF)</Text>
-                <Text style={styles.bullet}>• Bonus: 7 dagen reset-schema</Text>
-                <Text style={styles.bullet}>• Bonus: printbare weekplanner</Text>
-                <View style={styles.priceRow}>
-                  <Text style={styles.pageCardText}>Totaal</Text>
-                  <Text style={styles.price}>€19</Text>
-                </View>
-                <Text style={styles.smallText}>
-                  Koppel later je echte Stripe of Mollie checkout voor live betalingen.
-                </Text>
-              </View>
-            </View>
-          </>
-        );
-
-      case "thanks":
-        return (
-          <>
-            <Text style={styles.eyebrow}>Bedankt</Text>
-            <Text style={styles.pageTitle}>Je bestelling is binnen</Text>
-            <Text style={styles.pageLead}>{subtitle}</Text>
-
-            <View style={[styles.productWrap, isWide && styles.productWrapWide]}>
-              <View style={styles.pageCard}>
-                <Text style={styles.pageCardTitle}>Directe volgende stap</Text>
-                <Text style={styles.pageCardText}>
-                  Download je e-book nu en start met de eerste focusoefening van 5 minuten.
-                </Text>
-                <Pressable style={styles.primaryButton} onPress={openDownload}>
-                  <Text style={styles.primaryButtonText}>Download Focuskracht.pdf</Text>
-                </Pressable>
-                <Text style={styles.smallText}>Vervang de downloadlink in de code met je echte PDF URL.</Text>
-              </View>
-
-              <View style={styles.pageCard}>
-                <Text style={styles.pageCardTitle}>Besteloverzicht</Text>
-                <Text style={styles.bullet}>• Betaalmethode: {thanksMethod}</Text>
-                <Text style={styles.bullet}>• Product: Focuskracht ADHD E-book</Text>
-                <Text style={styles.bullet}>• Bedrag: €19</Text>
-                <Pressable style={styles.secondaryButton} onPress={() => navigate("home")}>
-                  <Text style={styles.secondaryButtonText}>Terug naar home</Text>
-                </Pressable>
-              </View>
-            </View>
-          </>
-        );
-
-      default:
-        return null;
-    }
-  }
 }
 
-function TrustChip({ icon, text }: { icon: string; text: string }) {
-  return (
-    <View style={styles.trustChip}>
-      <Text style={styles.trustIcon}>{icon}</Text>
-      <Text style={styles.trustText}>{text}</Text>
-    </View>
-  );
-}
-
-function FaqCard({ question, answer }: { question: string; answer: string }) {
-  return (
-    <View style={styles.faqCard}>
-      <Text style={styles.faqQuestion}>{question}</Text>
-      <Text style={styles.faqAnswer}>{answer}</Text>
-    </View>
-  );
-}
-
-function StepChip({ text }: { text: string }) {
-  return (
-    <View style={styles.stepChip}>
-      <Text style={styles.stepChipText}>{text}</Text>
-    </View>
-  );
-}
-
-function Footer({ onNavigate, isWide }: { onNavigate: (page: Page) => void; isWide: boolean }) {
-  return (
-    <View style={styles.footer}>
-      <View style={[styles.footerTop, isWide && styles.footerTopWide]}>
-        <View>
-          <Text style={styles.footerBrand}>Focuskracht</Text>
-          <Text style={styles.footerText}>ADHD-proof e-bookshop met snelle checkout.</Text>
-        </View>
-
-        <View>
-          <Text style={styles.footerHeading}>Pagina's</Text>
-          <Pressable onPress={() => onNavigate("home")}>
-            <Text style={styles.footerLink}>Home</Text>
-          </Pressable>
-          <Pressable onPress={() => onNavigate("about")}>
-            <Text style={styles.footerLink}>Over ons</Text>
-          </Pressable>
-          <Pressable onPress={() => onNavigate("faq")}>
-            <Text style={styles.footerLink}>FAQ</Text>
-          </Pressable>
-          <Pressable onPress={() => onNavigate("contact")}>
-            <Text style={styles.footerLink}>Contact</Text>
-          </Pressable>
-        </View>
-
-        <View>
-          <Text style={styles.footerHeading}>Snelle links</Text>
-          <Pressable onPress={() => onNavigate("checkout")}>
-            <Text style={styles.footerLink}>Bestellen</Text>
-          </Pressable>
-          <Pressable onPress={() => onNavigate("privacy")}>
-            <Text style={styles.footerLink}>Privacy</Text>
-          </Pressable>
-          <Text style={styles.footerLink}>info@focuskracht.nl</Text>
-        </View>
-      </View>
-
-      <Text style={styles.footerBottom}>© {new Date().getFullYear()} Focuskracht</Text>
-    </View>
-  );
-}
-
-const fontRegular = Platform.select({
+const appFont = Platform.select({
   ios: "Avenir Next",
   android: "sans-serif",
   default: "system-ui",
@@ -783,735 +686,484 @@ const fontRegular = Platform.select({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f3f9ff",
+    backgroundColor: "#f8efe8",
   },
-  backgroundDecor: {
+  bgLayer: {
     ...StyleSheet.absoluteFillObject,
     overflow: "hidden",
   },
-  blobOne: {
+  bgBlobOne: {
     position: "absolute",
-    width: 360,
-    height: 360,
-    borderRadius: 999,
-    backgroundColor: "rgba(20, 187, 166, 0.18)",
     top: -120,
-    left: -120,
-  },
-  blobTwo: {
-    position: "absolute",
-    width: 320,
-    height: 320,
-    borderRadius: 999,
-    backgroundColor: "rgba(255, 122, 84, 0.2)",
-    top: 70,
-    right: -150,
-  },
-  blobThree: {
-    position: "absolute",
+    left: -60,
     width: 280,
     height: 280,
     borderRadius: 999,
-    backgroundColor: "rgba(61, 147, 255, 0.17)",
-    bottom: 180,
-    left: -110,
+    backgroundColor: "rgba(255, 227, 214, 0.7)",
   },
-  header: {
-    minHeight: 74,
-    marginHorizontal: 12,
-    marginTop: 8,
-    marginBottom: 4,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "#d7e4f4",
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    shadowColor: "#0e2d4d",
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 9 },
-    elevation: 2,
-  },
-  headerWide: {
-    maxWidth: 1120,
-    alignSelf: "center",
-    width: "100%",
-  },
-  brand: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  brandMark: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
-    backgroundColor: "#14bba6",
-    borderWidth: 1,
-    borderColor: "#12897b",
-  },
-  brandText: {
-    fontFamily: fontRegular,
-    fontWeight: "800",
-    color: "#11233f",
-    fontSize: 20,
-    letterSpacing: -0.4,
-  },
-  desktopNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  desktopLink: {
-    minHeight: 38,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    justifyContent: "center",
-  },
-  desktopLinkActive: {
-    backgroundColor: "#eaf4ff",
-    borderWidth: 1,
-    borderColor: "#bfdbff",
-  },
-  desktopLinkText: {
-    fontFamily: fontRegular,
-    color: "#304a6a",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  desktopLinkTextActive: {
-    color: "#1f5ba0",
-  },
-  desktopCta: {
-    minHeight: 40,
-    borderRadius: 12,
-    backgroundColor: "#ff6d42",
-    paddingHorizontal: 14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  desktopCtaText: {
-    fontFamily: fontRegular,
-    color: "#ffffff",
-    fontWeight: "800",
-    fontSize: 13,
-  },
-  menuButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#d3e3f7",
-    backgroundColor: "#ffffff",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 4,
-  },
-  menuLine: {
-    width: 18,
-    height: 2,
-    borderRadius: 2,
-    backgroundColor: "#11233f",
+  bgBlobTwo: {
+    position: "absolute",
+    right: -80,
+    top: 120,
+    width: 260,
+    height: 260,
+    borderRadius: 999,
+    backgroundColor: "rgba(220, 232, 226, 0.55)",
   },
   scrollContent: {
-    paddingBottom: 130,
-    paddingTop: 6,
+    paddingHorizontal: 14,
+    paddingTop: 18,
+    paddingBottom: 28,
   },
-  pageWrap: {
+  scrollDesktop: {
+    alignItems: "center",
+  },
+  container: {
     width: "100%",
-    paddingHorizontal: 12,
-    paddingTop: 12,
-    gap: 16,
+    gap: 12,
   },
-  sectionNarrow: {
-    alignSelf: "stretch",
+  containerDesktop: {
+    maxWidth: 760,
   },
-  sectionWide: {
-    alignSelf: "center",
-    width: "100%",
-    maxWidth: 1120,
-  },
-  eyebrow: {
-    fontFamily: fontRegular,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    color: "#2e90ff",
-    fontSize: 12,
-  },
-  heroWrap: {
-    gap: 14,
-  },
-  heroWrapWide: {
-    flexDirection: "row",
-    alignItems: "stretch",
-  },
-  heroCopy: {
-    flex: 1.1,
-    backgroundColor: "rgba(255, 255, 255, 0.92)",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#d2e5fb",
-    padding: 18,
-    gap: 14,
-    shadowColor: "#0f2f52",
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 2,
-  },
-  heroCard: {
-    flex: 0.9,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#d2e5fb",
-    padding: 18,
-    gap: 10,
-    justifyContent: "space-between",
-    shadowColor: "#0f2f52",
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 2,
-  },
-  heroTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontWeight: "800",
-    fontSize: 34,
-    lineHeight: 39,
-    letterSpacing: -0.8,
-  },
-  heroText: {
-    fontFamily: fontRegular,
-    color: "#395373",
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  actionRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  primaryButton: {
-    minHeight: 48,
-    borderRadius: 14,
-    backgroundColor: "#ff6b3f",
-    paddingHorizontal: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#ff6b3f",
-    shadowOpacity: 0.32,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 7 },
-    elevation: 2,
-  },
-  primaryButtonText: {
-    fontFamily: fontRegular,
-    color: "#ffffff",
-    fontWeight: "800",
-    fontSize: 15,
-    letterSpacing: -0.2,
-  },
-  secondaryButton: {
-    minHeight: 48,
-    borderRadius: 14,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#d8e5f5",
-    paddingHorizontal: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  secondaryButtonText: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  trustGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  trustChip: {
-    minHeight: 34,
-    borderRadius: 999,
-    backgroundColor: "#eef5ff",
-    borderWidth: 1,
-    borderColor: "#d8e5f5",
-    paddingHorizontal: 10,
-    flexDirection: "row",
-    alignItems: "center",
+  headerCard: {
+    paddingHorizontal: 4,
     gap: 6,
   },
-  trustIcon: {
-    fontSize: 14,
-  },
-  trustText: {
-    fontFamily: fontRegular,
-    color: "#395373",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  pill: {
+  badge: {
     alignSelf: "flex-start",
-    minHeight: 28,
     borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#e9d7cb",
+    backgroundColor: "#fff7f0",
     paddingHorizontal: 10,
-    backgroundColor: "#ffe1d7",
-    color: "#d1461f",
-    textAlignVertical: "center",
-    fontFamily: fontRegular,
-    fontWeight: "800",
-    fontSize: 12,
+    paddingVertical: 4,
+    fontFamily: appFont,
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#856d62",
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 0.8,
   },
-  cardTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
+  title: {
+    fontFamily: appFont,
+    color: "#2d2636",
+    fontSize: 34,
+    lineHeight: 39,
     fontWeight: "800",
-    fontSize: 30,
-    letterSpacing: -0.8,
+    letterSpacing: -0.9,
   },
-  cardText: {
-    fontFamily: fontRegular,
-    color: "#395373",
+  subtitle: {
+    fontFamily: appFont,
+    color: "#665d66",
     fontSize: 15,
     lineHeight: 22,
   },
-  cardGrid: {
-    gap: 12,
-  },
-  cardGridWide: {
+  progressWrap: {
     flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
-  infoCard: {
+  progressTrack: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 16,
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: "#eadfd8",
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 999,
+    backgroundColor: "#d0a291",
+  },
+  progressLabel: {
+    minWidth: 50,
+    textAlign: "right",
+    fontFamily: appFont,
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#84746a",
+  },
+  questionCard: {
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#d2e5fb",
-    padding: 16,
-    gap: 8,
-  },
-  infoIcon: {
-    fontSize: 22,
-  },
-  infoTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 19,
-    fontWeight: "800",
-    letterSpacing: -0.4,
-  },
-  infoText: {
-    fontFamily: fontRegular,
-    color: "#395373",
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  productWrap: {
-    gap: 12,
-  },
-  productWrapWide: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  productCard: {
-    flex: 1.1,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#d2e5fb",
+    borderColor: "#ead9cf",
+    backgroundColor: "rgba(255, 251, 246, 0.96)",
     padding: 18,
-    gap: 12,
+    gap: 14,
+    shadowColor: "#a99388",
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 2,
   },
-  productTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 27,
+  questionCount: {
+    fontFamily: appFont,
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#8c7a70",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  questionText: {
+    fontFamily: appFont,
+    color: "#322b39",
+    fontSize: 30,
+    lineHeight: 36,
     fontWeight: "800",
     letterSpacing: -0.8,
   },
-  productText: {
-    fontFamily: fontRegular,
-    color: "#395373",
+  questionHint: {
+    fontFamily: appFont,
+    color: "#6f646f",
+    fontSize: 14,
+  },
+  optionsWrap: {
+    gap: 10,
+  },
+  optionButton: {
+    minHeight: 64,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e8d4ca",
+    backgroundColor: "#fff8f1",
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  optionButtonPressed: {
+    backgroundColor: "#ffefe4",
+    transform: [{ scale: 0.99 }],
+  },
+  optionLabel: {
+    fontFamily: appFont,
+    color: "#352e3a",
+    fontSize: 17,
+    fontWeight: "700",
+  },
+  optionMeta: {
+    fontFamily: appFont,
+    color: "#9a8a80",
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  footerRow: {
+    marginTop: 2,
+    flexDirection: "row",
+  },
+  backButton: {
+    minHeight: 42,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#decdc2",
+    backgroundColor: "#fff6ef",
+    paddingHorizontal: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backButtonDisabled: {
+    opacity: 0.45,
+  },
+  backButtonText: {
+    fontFamily: appFont,
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#5b4f5d",
+  },
+  resultCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#ead9cf",
+    backgroundColor: "rgba(255, 251, 246, 0.96)",
+    padding: 18,
+    gap: 14,
+    shadowColor: "#a99388",
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 2,
+  },
+  resultBadge: {
+    alignSelf: "flex-start",
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#e0d9d3",
+    backgroundColor: "#f8f5f2",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    fontFamily: appFont,
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#766a63",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  resultTitle: {
+    fontFamily: appFont,
+    color: "#302938",
+    fontSize: 34,
+    lineHeight: 39,
+    fontWeight: "800",
+    letterSpacing: -0.9,
+  },
+  resultDescription: {
+    fontFamily: appFont,
+    color: "#615863",
     fontSize: 15,
     lineHeight: 23,
   },
-  bulletList: {
-    gap: 6,
-  },
-  bullet: {
-    fontFamily: fontRegular,
-    color: "#395373",
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  priceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 10,
-    marginTop: 4,
-  },
-  price: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 24,
-    fontWeight: "800",
-    letterSpacing: -0.6,
-  },
-  inlineCta: {
-    fontFamily: fontRegular,
-    color: "#ff6d42",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  stepsCard: {
-    flex: 0.9,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#d2e5fb",
-    padding: 18,
+  blocksWrap: {
     gap: 10,
   },
-  stepsTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 20,
-    fontWeight: "800",
-    letterSpacing: -0.4,
-  },
-  step: {
-    fontFamily: fontRegular,
-    color: "#395373",
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  testimonialRow: {
-    gap: 10,
-  },
-  testimonialRowWide: {
+  blocksWrapDesktop: {
     flexDirection: "row",
   },
-  quoteCard: {
+  infoBlock: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#d2e5fb",
-    padding: 14,
+    borderColor: "#e7d7ce",
+    backgroundColor: "#fff8f3",
+    padding: 12,
+    gap: 7,
   },
-  quote: {
-    fontFamily: fontRegular,
-    color: "#395373",
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  banner: {
-    backgroundColor: "rgba(238, 247, 255, 0.94)",
-    borderWidth: 1,
-    borderColor: "#c8e0fb",
-    borderRadius: 20,
-    padding: 18,
-    gap: 12,
-  },
-  bannerTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 28,
-    fontWeight: "800",
-    letterSpacing: -0.8,
-  },
-  pageTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 34,
-    lineHeight: 40,
-    fontWeight: "800",
-    letterSpacing: -0.8,
-  },
-  pageLead: {
-    fontFamily: fontRegular,
-    color: "#395373",
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  pageCard: {
-    flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#d2e5fb",
-    padding: 18,
-    gap: 10,
-  },
-  pageCardTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 21,
-    fontWeight: "800",
-    letterSpacing: -0.4,
-  },
-  pageCardText: {
-    fontFamily: fontRegular,
-    color: "#395373",
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  stackGap: {
-    gap: 10,
-  },
-  faqCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#d2e5fb",
-    padding: 14,
-    gap: 8,
-  },
-  faqQuestion: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  faqAnswer: {
-    fontFamily: fontRegular,
-    color: "#395373",
+  blockTitle: {
+    fontFamily: appFont,
+    color: "#433848",
     fontSize: 14,
-    lineHeight: 21,
+    fontWeight: "800",
   },
-  input: {
-    minHeight: 48,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#d8e5f5",
-    backgroundColor: "#fcfeff",
-    paddingHorizontal: 12,
-    color: "#11233f",
-    fontFamily: fontRegular,
-    fontSize: 15,
-  },
-  textArea: {
-    minHeight: 120,
-    textAlignVertical: "top",
-    paddingVertical: 12,
-  },
-  smallText: {
-    fontFamily: fontRegular,
-    color: "#58708f",
+  blockItem: {
+    fontFamily: appFont,
+    color: "#695d69",
     fontSize: 13,
     lineHeight: 19,
   },
-  topSpacing: {
-    marginTop: 10,
+  recoWrap: {
+    gap: 7,
   },
-  chipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  stepChip: {
-    minHeight: 32,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#d8e5f5",
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 10,
-    justifyContent: "center",
-  },
-  stepChipText: {
-    fontFamily: fontRegular,
-    color: "#395373",
+  recoLabel: {
+    fontFamily: appFont,
+    color: "#655965",
     fontSize: 12,
     fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
   },
-  fieldLabel: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  choiceRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 4,
-  },
-  choiceButton: {
-    minHeight: 34,
-    borderRadius: 10,
+  recoCard: {
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 10,
+    borderColor: "#ddcec4",
+    backgroundColor: "#fff6f0",
+    overflow: "hidden",
+  },
+  recoImage: {
+    width: "100%",
+    aspectRatio: 1024 / 1536,
+    backgroundColor: "#f0e4db",
+  },
+  recoPlaceholder: {
+    width: "100%",
+    aspectRatio: 1024 / 1536,
+    backgroundColor: "#efe2d8",
+    alignItems: "center",
     justifyContent: "center",
   },
-  choiceButtonActive: {
-    borderColor: "#17b8a6",
-    backgroundColor: "#e7f9f7",
-  },
-  choiceText: {
-    fontFamily: fontRegular,
-    color: "#395373",
+  recoPlaceholderText: {
+    fontFamily: appFont,
+    color: "#8a7b72",
     fontSize: 13,
     fontWeight: "700",
   },
-  choiceTextActive: {
-    color: "#137d74",
+  recoCopy: {
+    padding: 12,
+    gap: 4,
   },
-  methodButton: {
-    minHeight: 46,
-    borderRadius: 12,
+  recoTitle: {
+    fontFamily: appFont,
+    color: "#352e3b",
+    fontSize: 19,
+    fontWeight: "800",
+  },
+  recoSubtitle: {
+    fontFamily: appFont,
+    color: "#6f646e",
+    fontSize: 14,
+  },
+  captureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  captureDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: "#cab7ad",
+    backgroundColor: "#fff7f1",
+  },
+  captureDotActive: {
+    borderColor: "#b18371",
+    backgroundColor: "#b18371",
+  },
+  captureText: {
+    flex: 1,
+    fontFamily: appFont,
+    color: "#665b65",
+    fontSize: 14,
+  },
+  emailWrap: {
+    gap: 6,
+  },
+  emailInput: {
+    minHeight: 48,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
-    backgroundColor: "#fcfeff",
+    borderColor: "#e2d0c6",
+    backgroundColor: "#fff8f2",
     paddingHorizontal: 12,
+    fontFamily: appFont,
+    fontSize: 15,
+    color: "#362f3c",
+  },
+  errorText: {
+    fontFamily: appFont,
+    color: "#c4555d",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  actionStack: {
+    gap: 10,
+  },
+  downloadButton: {
+    minHeight: 52,
+    borderRadius: 14,
+    backgroundColor: "#d9947e",
     justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#bb7f6b",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
-  methodButtonActive: {
-    borderColor: "#17b8a6",
-    backgroundColor: "#e7f9f7",
+  downloadButtonText: {
+    fontFamily: appFont,
+    color: "#fffdfa",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: -0.2,
   },
-  methodText: {
-    fontFamily: fontRegular,
-    color: "#11233f",
+  shareButton: {
+    minHeight: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#d8c8bf",
+    backgroundColor: "#fff5ee",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  shareButtonText: {
+    fontFamily: appFont,
+    color: "#4d4253",
     fontSize: 15,
     fontWeight: "700",
   },
-  methodTextActive: {
-    color: "#137d74",
+  restartButton: {
+    minHeight: 46,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  footer: {
-    marginTop: 22,
-    backgroundColor: "#11233f",
-    paddingHorizontal: 18,
-    paddingTop: 24,
-    paddingBottom: 26,
-    gap: 14,
+  restartButtonText: {
+    fontFamily: appFont,
+    color: "#7a6d77",
+    fontSize: 14,
+    fontWeight: "700",
   },
-  footerTop: {
-    gap: 18,
-  },
-  footerTopWide: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  footerBrand: {
-    fontFamily: fontRegular,
-    color: "#ffffff",
-    fontWeight: "800",
-    fontSize: 18,
-  },
-  footerText: {
-    fontFamily: fontRegular,
-    color: "#c6d9f1",
+  noteText: {
+    fontFamily: appFont,
+    color: "#5b7a6a",
     fontSize: 13,
-    lineHeight: 20,
+    fontWeight: "700",
+  },
+  catalogSection: {
+    gap: 10,
     marginTop: 4,
   },
-  footerHeading: {
-    fontFamily: fontRegular,
-    color: "#ffffff",
+  catalogTitle: {
+    fontFamily: appFont,
+    color: "#433848",
+    fontSize: 18,
     fontWeight: "800",
-    marginBottom: 6,
-    fontSize: 14,
   },
-  footerLink: {
-    fontFamily: fontRegular,
-    color: "#c6d9f1",
-    marginBottom: 5,
-    fontSize: 13,
+  catalogGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
   },
-  footerBottom: {
-    fontFamily: fontRegular,
-    color: "#9fb8d9",
-    borderTopWidth: 1,
-    borderTopColor: "#243c5f",
-    paddingTop: 12,
-    fontSize: 12,
-  },
-  floatingBar: {
-    position: "absolute",
-    left: 12,
-    right: 12,
-    bottom: 10,
+  catalogCard: {
+    width: "48%",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#d1e4f9",
-    backgroundColor: "rgba(255,255,255,0.99)",
-    padding: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 10,
-    shadowColor: "#163860",
-    shadowOpacity: 0.16,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 3,
+    borderColor: "#e3d3c9",
+    backgroundColor: "#fff9f4",
+    padding: 8,
+    gap: 6,
   },
-  floatingTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontSize: 14,
-    fontWeight: "800",
+  catalogCardRecommended: {
+    borderColor: "#c28f7a",
+    backgroundColor: "#fff2ea",
   },
-  menuLayer: {
-    flex: 1,
-    justifyContent: "flex-start",
-    paddingTop: 88,
-  },
-  menuBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(10, 24, 43, 0.45)",
-  },
-  menuSheet: {
-    marginHorizontal: 18,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#d8e5f5",
-    backgroundColor: "#ffffff",
-    padding: 14,
-    gap: 8,
-  },
-  menuTitle: {
-    fontFamily: fontRegular,
-    color: "#11233f",
-    fontWeight: "800",
-    fontSize: 18,
-    marginBottom: 4,
-  },
-  menuItem: {
-    minHeight: 44,
+  catalogImage: {
+    width: "100%",
+    aspectRatio: 1024 / 1536,
     borderRadius: 10,
-    paddingHorizontal: 12,
+    backgroundColor: "#f0e4dc",
+  },
+  catalogPlaceholder: {
+    width: "100%",
+    aspectRatio: 1024 / 1536,
+    borderRadius: 10,
+    backgroundColor: "#f1e7df",
+    alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f7fbff",
-    borderWidth: 1,
-    borderColor: "#d8e5f5",
   },
-  menuItemActive: {
-    borderColor: "#2e90ff",
-    backgroundColor: "#eaf3ff",
-  },
-  menuItemText: {
-    fontFamily: fontRegular,
-    color: "#11233f",
+  catalogPlaceholderText: {
+    fontFamily: appFont,
+    color: "#8d7f77",
+    fontSize: 12,
     fontWeight: "700",
-    fontSize: 14,
   },
-  menuItemTextActive: {
-    color: "#205ea9",
+  catalogCardTitle: {
+    fontFamily: appFont,
+    color: "#3e3445",
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
+  catalogCardSubtitle: {
+    fontFamily: appFont,
+    color: "#6c616c",
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  sampleTag: {
+    alignSelf: "flex-start",
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#e6d7ce",
+    backgroundColor: "#fff5ee",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    fontFamily: appFont,
+    color: "#856f64",
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
   },
 });

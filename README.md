@@ -1,19 +1,34 @@
-# Focuskracht Shop (React Native)
+# ADHD Quiz Website (Focuskracht)
 
-React Native (Expo) versie van je ADHD-proof webshop.
+Mobile-first interactieve quiz in React Native (Expo Web), klaar voor Netlify.
 
-Dit is de enige map die je nodig hebt voor je live website:
-
+Werkmap:
 - `/Users/amiradouairi/Documents/New project/website`
 
-## Features
+## Wat er nu in zit
 
-- Kleurrijke homepagina met sterke CTA's
-- Desktop navigatie + mobiele hamburger
-- Snelle checkoutflow met betaalmethode-keuze
-- Bedankpagina met downloadknop
-- Hash-routing op web: `#/home`, `#/about`, `#/checkout`, enz.
-- Werkt op iOS, Android en Web via Expo
+- Quiz: `Welke ADHD type ben jij?`
+- 12 vragen, 1 vraag per scherm
+- Antwoorden: `Nooit / Soms / Vaak / Altijd`
+- Scoremodel voor 6 types:
+  - Overwhelm Queen
+  - Uitsteller
+  - Chaos Creator
+  - Hyperfocus Hustler
+  - People Pleaser
+  - Burn-out Builder
+- Resultaatpagina met:
+  - type-titel
+  - beschrijving
+  - 3 struggles
+  - 3 oplossingen
+  - aanbevolen e-book
+  - CTA `Download jouw plan`
+  - optionele e-mail capture
+  - deelknop (Web Share / clipboard fallback)
+- E-book overzicht waar alle e-books los zichtbaar zijn
+- Jouw voorbeeldcover is gekoppeld in:
+  - `assets/ebook-rust-in-je-hoofd.jpg`
 
 ## Lokaal draaien
 
@@ -23,53 +38,29 @@ npm install
 npm start
 ```
 
-Daarna kun je kiezen:
-
-- `w` voor web
-- `i` voor iOS simulator
-- `a` voor Android emulator
-
-Direct web starten:
+Voor web direct:
 
 ```bash
 npm run web
 ```
 
-Productie web build (zelfde als Netlify):
+## Build voor Netlify
 
 ```bash
 npm run build
 ```
 
-## Netlify deploy
-
-Deze app is Netlify-klaar met [netlify.toml](/Users/amiradouairi/Documents/New%20project/website/netlify.toml).
-
-Belangrijk:
-
+Netlify instellingen:
 - Build command: `npm run build`
 - Publish directory: `dist`
-- SPA redirect: alle routes gaan naar `index.html`
-- Security + cache headers zijn ingesteld in `netlify.toml`
+- Config: `netlify.toml`
 
-Stappen in Netlify:
+## Snel aanpassen met nieuwe info
 
-1. Koppel je GitHub repo: `amiradoo/adhd`.
-2. Bij Build settings laat je staan:
-3. Build command: `npm run build`
-4. Publish directory: `dist`
-5. Deploy site.
+Alles staat centraal in `App.tsx`:
 
-## Bestanden
+- `QUESTIONS`: voeg vragen toe/verander scoring
+- `TYPE_PROFILES`: pas type-beschrijvingen, struggles en oplossingen aan
+- `EBOOK_CATALOG`: voeg extra e-books/covers toe
 
-- `App.tsx`: volledige app met alle pagina's en checkoutflow
-- `app.json`: Expo app-config
-- `netlify.toml`: Netlify build, redirect en headers config
-
-## Downloadlink aanpassen
-
-In `App.tsx` staat een placeholder:
-
-- `DOWNLOAD_URL = "https://example.com/focuskracht.pdf"`
-
-Vervang dit met je echte e-book PDF-link.
+Als je nieuwe input geeft, updaten we alleen deze blokken en blijft de hele flow intact.
