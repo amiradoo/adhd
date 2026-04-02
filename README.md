@@ -7,6 +7,9 @@ Werkmap:
 
 ## Wat er nu in zit
 
+- Mobile web-app shell met vaste app-bar bovenin
+- Mobile web-app shell met vaste bottom dock op mobiel
+- Touch-first UI met grote actieknoppen
 - Quiz: `Welke ADHD type ben jij?`
 - 12 vragen, 1 vraag per scherm
 - Antwoorden: `Nooit / Soms / Vaak / Altijd`
@@ -54,6 +57,8 @@ Netlify instellingen:
 - Build command: `npm run build`
 - Publish directory: `dist`
 - Config: `netlify.toml`
+- Web template: `web/index.html` (mobile web app meta tags)
+- PWA build script: `scripts/prepare-webapp.cjs`
 
 ## Snel aanpassen met nieuwe info
 
@@ -62,5 +67,11 @@ Alles staat centraal in `App.tsx`:
 - `QUESTIONS`: voeg vragen toe/verander scoring
 - `TYPE_PROFILES`: pas type-beschrijvingen, struggles en oplossingen aan
 - `EBOOK_CATALOG`: voeg extra e-books/covers toe
+
+PWA assets:
+
+- `assets/pwa-icon-192.png`
+- `assets/pwa-icon-512.png`
+- `assets/apple-touch-icon.png`
 
 Als je nieuwe input geeft, updaten we alleen deze blokken en blijft de hele flow intact.

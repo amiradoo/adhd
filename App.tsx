@@ -49,6 +49,11 @@ type EbookCard = {
   sample?: boolean;
 };
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+};
+
 const SAMPLE_COVER = require("./assets/ebook-rust-in-je-hoofd.jpg");
 
 const TYPE_PRIORITY: AdhdType[] = [
@@ -341,6 +346,8 @@ export default function App() {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [note, setNote] = useState("");
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installNote, setInstallNote] = useState("");
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -348,6 +355,12 @@ export default function App() {
   const quizDone = answers.length >= QUESTIONS.length;
   const progress = Math.min(answers.length, QUESTIONS.length) / QUESTIONS.length;
   const question = QUESTIONS[questionIndex];
+  const answeredCount = Math.min(answers.length, QUESTIONS.length);
+  const currentQuestionNumber = Math.min(questionIndex + 1, QUESTIONS.length);
+  const canGoBack = questionIndex > 0 && !quizDone;
+  const stepLabel = quizDone
+    ? "Resultaat klaar"
+    : `Vraag ${currentQuestionNumber} van ${QUESTIONS.length}`;
 
   const resultType = useMemo(() => {
     if (!quizDone) return null;
@@ -378,6 +391,44 @@ export default function App() {
       }),
     ]).start();
   }, [questionIndex, quizDone, fadeAnim, slideAnim]);
+
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+
+    const onInstalled = () => {
+      setInstallNote("App toegevoegd aan je beginscherm.");
+      setInstallPrompt(null);
+    };
+
+    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt as EventListener);
+    window.addEventListener("appinstalled", onInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt as EventListener);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  const installAsApp = async () => {
+    if (!installPrompt) {
+      setInstallNote("Gebruik in Safari: Deel > Zet op beginscherm.");
+      return;
+    }
+
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+
+    if (choice.outcome === "accepted") {
+      setInstallNote("Top, app-installatie gestart.");
+    } else {
+      setInstallNote("Installatie geannuleerd. Je kunt later opnieuw proberen.");
+    }
+  };
 
   const goNext = (optionIndex: number) => {
     if (animating || quizDone) return;
@@ -493,8 +544,22 @@ export default function App() {
         <View style={styles.bgBlobTwo} />
       </View>
 
+      <View style={[styles.appBar, isDesktop && styles.appBarDesktop]}>
+        <View style={styles.appBarBrandWrap}>
+          <Text style={styles.appBarBrand}>Focuskracht</Text>
+          <Text style={styles.appBarSub}>ADHD Type Quiz</Text>
+        </View>
+        <View style={styles.appBarPill}>
+          <Text style={styles.appBarPillText}>{stepLabel}</Text>
+        </View>
+      </View>
+
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, isDesktop && styles.scrollDesktop]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          !isDesktop && styles.scrollMobilePadded,
+          isDesktop && styles.scrollDesktop,
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -505,6 +570,12 @@ export default function App() {
             <Text style={styles.subtitle}>
               12 snelle vragen, 1 per scherm. Daarna krijg je direct een persoonlijk plan.
             </Text>
+            <View style={styles.installWrap}>
+              <Pressable style={styles.installButton} onPress={installAsApp}>
+                <Text style={styles.installButtonText}>Installeer als app</Text>
+              </Pressable>
+              {installNote ? <Text style={styles.installNote}>{installNote}</Text> : null}
+            </View>
           </View>
 
           <View style={styles.progressWrap}>
@@ -512,7 +583,7 @@ export default function App() {
               <View style={[styles.progressFill, { width: `${Math.max(progress * 100, 2)}%` }]} />
             </View>
             <Text style={styles.progressLabel}>
-              {Math.min(answers.length, QUESTIONS.length)}/{QUESTIONS.length}
+              {answeredCount}/{QUESTIONS.length}
             </Text>
           </View>
 
@@ -546,15 +617,17 @@ export default function App() {
                 ))}
               </View>
 
-              <View style={styles.footerRow}>
-                <Pressable
-                  onPress={goBack}
-                  style={[styles.backButton, questionIndex === 0 && styles.backButtonDisabled]}
-                  disabled={questionIndex === 0}
-                >
-                  <Text style={styles.backButtonText}>Vorige</Text>
-                </Pressable>
-              </View>
+              {isDesktop && (
+                <View style={styles.footerRow}>
+                  <Pressable
+                    onPress={goBack}
+                    style={[styles.backButton, questionIndex === 0 && styles.backButtonDisabled]}
+                    disabled={questionIndex === 0}
+                  >
+                    <Text style={styles.backButtonText}>Vorige</Text>
+                  </Pressable>
+                </View>
+              )}
             </Animated.View>
           ) : (
             resultProfile && (
@@ -673,6 +746,29 @@ export default function App() {
           )}
         </View>
       </ScrollView>
+
+      {!isDesktop && (
+        <View style={styles.mobileDock}>
+          <Pressable style={styles.dockButton} onPress={resetQuiz}>
+            <Text style={styles.dockButtonIcon}>⌂</Text>
+            <Text style={styles.dockButtonText}>Home</Text>
+          </Pressable>
+
+          <View style={styles.dockCenter}>
+            <Text style={styles.dockCenterTitle}>{stepLabel}</Text>
+            <Text style={styles.dockCenterMeta}>{Math.round(progress * 100)}% voltooid</Text>
+          </View>
+
+          <Pressable
+            style={[styles.dockButton, !quizDone && !canGoBack && styles.dockButtonDisabled]}
+            onPress={quizDone ? downloadPlan : goBack}
+            disabled={!quizDone && !canGoBack}
+          >
+            <Text style={styles.dockButtonIcon}>{quizDone ? "⬇" : "←"}</Text>
+            <Text style={styles.dockButtonText}>{quizDone ? "Plan" : "Vorige"}</Text>
+          </Pressable>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -687,6 +783,65 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#f8efe8",
+  },
+  appBar: {
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 6,
+    minHeight: 64,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#ead8cf",
+    backgroundColor: "rgba(255, 250, 246, 0.95)",
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    shadowColor: "#a99388",
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 2,
+  },
+  appBarDesktop: {
+    maxWidth: 760,
+    width: "100%",
+    alignSelf: "center",
+  },
+  appBarBrandWrap: {
+    gap: 2,
+  },
+  appBarBrand: {
+    fontFamily: appFont,
+    color: "#2e2738",
+    fontSize: 20,
+    fontWeight: "800",
+    letterSpacing: -0.4,
+  },
+  appBarSub: {
+    fontFamily: appFont,
+    color: "#7b6d77",
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  appBarPill: {
+    minHeight: 34,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#ddc9bf",
+    backgroundColor: "#fff5ee",
+    paddingHorizontal: 11,
+    justifyContent: "center",
+  },
+  appBarPillText: {
+    fontFamily: appFont,
+    color: "#6a5f68",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
   },
   bgLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -712,8 +867,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 14,
-    paddingTop: 18,
+    paddingTop: 12,
     paddingBottom: 28,
+  },
+  scrollMobilePadded: {
+    paddingBottom: 108,
   },
   scrollDesktop: {
     alignItems: "center",
@@ -728,6 +886,34 @@ const styles = StyleSheet.create({
   headerCard: {
     paddingHorizontal: 4,
     gap: 6,
+  },
+  installWrap: {
+    marginTop: 4,
+    gap: 6,
+    alignItems: "flex-start",
+  },
+  installButton: {
+    minHeight: 36,
+    borderRadius: 999,
+    backgroundColor: "#f1e1d7",
+    borderWidth: 1,
+    borderColor: "#ddc6b9",
+    paddingHorizontal: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  installButtonText: {
+    fontFamily: appFont,
+    fontSize: 12,
+    color: "#6a5548",
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  installNote: {
+    fontFamily: appFont,
+    fontSize: 12,
+    color: "#786a63",
   },
   badge: {
     alignSelf: "flex-start",
@@ -1165,5 +1351,82 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.6,
+  },
+  mobileDock: {
+    position: "absolute",
+    left: 10,
+    right: 10,
+    bottom: 8,
+    minHeight: 74,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#dfcec4",
+    backgroundColor: "rgba(255, 251, 247, 0.98)",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    shadowColor: "#a58d81",
+    shadowOpacity: 0.24,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
+  dockButton: {
+    width: 80,
+    minHeight: 58,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#decdc3",
+    backgroundColor: "#fff7f1",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+  },
+  dockButtonDisabled: {
+    opacity: 0.45,
+  },
+  dockButtonIcon: {
+    fontFamily: appFont,
+    color: "#5d5060",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  dockButtonText: {
+    fontFamily: appFont,
+    color: "#5d5060",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  dockCenter: {
+    flex: 1,
+    minHeight: 58,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#ddc9bf",
+    backgroundColor: "#fff3eb",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    gap: 2,
+  },
+  dockCenterTitle: {
+    fontFamily: appFont,
+    color: "#4a3f4f",
+    fontSize: 13,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  dockCenterMeta: {
+    fontFamily: appFont,
+    color: "#7f6f79",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    textAlign: "center",
   },
 });
