@@ -1,46 +1,47 @@
-# ADHD Girls Club Webshop (Next.js)
+# ADHD Girls Club (website-next)
 
-Mobile-first webshop landing met quiz funnel, e-book aanbod, zachte feminine stijl en mobile-only sound feedback.
+Premium multi-page Next.js website met cinematic hero, zachte beige luxury styling, NL/EN taalwissel en conversion-first flow.
 
 ## Stack
 - Next.js 16 (App Router)
 - Tailwind CSS 4
-- Framer Motion (scroll animaties)
-- Lenis (smooth scroll)
+- Framer Motion
+- Lenis
 - Netlify Next.js plugin
+
+## Routes
+- `/` Home
+- `/about`
+- `/services`
+- `/contact`
+- `/landing`
 
 ## Lokaal draaien
 ```bash
 npm install
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000).
+Open `http://localhost:3000`.
 
-## Quality checks
+## Checks
 ```bash
 npm run lint
 npm run build
 ```
 
-## Netlify deploy
-Dit project bevat al `netlify.toml` en gebruikt de Next.js Netlify plugin.
+## Assets
+Gebruik deze mappen in `public/`:
+- `videos/hero.mp4`
+- `backgrounds/*`
+- `foregrounds/*`
+- `ui-elements/*`
+- `icons/*`
 
-Build settings:
+Fallbacks zijn ingebouwd: als video of extra media ontbreken, blijft de site stabiel met poster/image fallback.
+
+## Netlify
+`netlify.toml` gebruikt `@netlify/plugin-nextjs`.
+
+Belangrijk:
 - Build command: `npm run build`
-- Publish directory: leeg laten (plugin regelt dit)
-
-## Belangrijkste pagina onderdelen
-- Hero + snelle CTA
-- ADHD type quiz
-- E-book kaarten
-- About sectie
-- Social proof
-- Funnel + checkout CTA
-- Mobile dock (app-feel)
-- Footer met navigatie
-
-## Git push (als je non-fast-forward krijgt)
-```bash
-git pull --rebase origin main
-git push -u origin main
-```
+- Publish directory in Netlify UI leeg laten

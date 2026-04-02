@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Manrope, Playfair_Display } from "next/font/google";
+
+import { SiteProviders } from "@/components/providers/site-providers";
+import { SiteFrame } from "@/components/site/site-frame";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -15,9 +18,9 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "ADHD Girls Club | Quiz + E-book Funnel",
+  title: "ADHD Girls Club | Premium ADHD Quiz + E-book Flow",
   description:
-    "Mobile-first ADHD webshop met quiz funnel, zachte visuals en snelle call-to-actions voor hoge conversie.",
+    "Cinematic, mobile-first ADHD Girls Club website met type quiz, e-book funnel en premium zachte UX.",
 };
 
 export default function RootLayout({
@@ -26,11 +29,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="nl"
-      className={`${manrope.variable} ${playfair.variable} h-full antialiased`}
-    >
-      <body className="min-h-full">{children}</body>
+    <html lang="nl" className={`${manrope.variable} ${playfair.variable} h-full antialiased`}>
+      <body className="min-h-full">
+        <SiteProviders>
+          <SiteFrame>{children}</SiteFrame>
+        </SiteProviders>
+      </body>
     </html>
   );
 }
