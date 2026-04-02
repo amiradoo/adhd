@@ -751,63 +751,106 @@ export default function App() {
     <>
       <View style={[styles.heroWrap, isDesktop && styles.heroWrapDesktop]}>
         <View style={styles.heroCard}>
-          <Text style={styles.eyebrow}>Focuskracht / Editorial Quiz</Text>
+          <Text style={styles.eyebrow}>Premium ADHD Women Website</Text>
           <View style={styles.heroTypeStack}>
-            <Text style={styles.heroTitleOutline}>PURE</Text>
-            <Text style={styles.heroTitleSolid}>RUST</Text>
-            <Text style={styles.heroTitleOutline}>IN JE HOOFD</Text>
+            <Text style={styles.heroTitleOutline}>FROM NOISE</Text>
+            <Text style={styles.heroTitleSolid}>TO CALM</Text>
+            <Text style={styles.heroTitleOutline}>IN YOUR MIND</Text>
           </View>
           <Text style={styles.heroText}>
-            Een stijlvolle webapp met hoog contrast, duidelijke focus en snelle actie. Eerst de
-            test, daarna direct je plan en e-book.
+            Jij hoeft niet harder te werken. Je hebt een zachter, slimmer systeem nodig dat bij
+            ADHD past. Doe de quiz en krijg direct jouw persoonlijke plan.
           </Text>
           <View style={styles.heroActions}>
             <Pressable style={styles.primaryButton} onPress={startQuiz}>
-              <Text style={styles.primaryButtonText}>Start quiz nu</Text>
+              <Text style={styles.primaryButtonText}>Start de test</Text>
             </Pressable>
             <Pressable style={styles.secondaryButton} onPress={() => goRoute("shop", "tap")}>
               <Text style={styles.secondaryButtonText}>Bekijk e-books</Text>
             </Pressable>
           </View>
           <View style={styles.chipRow}>
-            <InfoChip text="12 korte vragen" icon="⚡" />
-            <InfoChip text="Direct resultaat" icon="🧠" />
-            <InfoChip text="Snelle checkout" icon="🛍" />
+            <InfoChip text="ADHD-proof flow" icon="○" />
+            <InfoChip text="Direct resultaat" icon="○" />
+            <InfoChip text="Snelle checkout" icon="○" />
           </View>
         </View>
 
         <View style={styles.heroSideCard}>
-          <Text style={styles.sideTitle}>Waarom dit werkt</Text>
-          <Text style={styles.sideBullet}>• Korte contentblokken</Text>
-          <Text style={styles.sideBullet}>• Grote tappable knoppen</Text>
-          <Text style={styles.sideBullet}>• Eenduidige volgende stap</Text>
-          <Text style={styles.sideBullet}>• Minder keuzestress</Text>
+          <Image source={SAMPLE_COVER} style={styles.heroPoster} resizeMode="cover" />
+          <Text style={styles.sideTitle}>2.500+ vrouwen gingen je voor</Text>
+          <Text style={styles.sideBullet}>"Eindelijk rust in mijn hoofd en structuur die blijft."</Text>
         </View>
       </View>
 
-      <View style={[styles.featureGrid, isDesktop && styles.featureGridDesktop]}>
-        <FeatureCard
-          title="Snelle flow"
-          text="Van binnenkomst naar actie in minder dan 2 minuten."
-          icon="⏱"
-        />
-        <FeatureCard
-          title="Hoge focus"
-          text="Duidelijke typografie en visuele hiërarchie zonder chaos."
-          icon="🎯"
-        />
-        <FeatureCard
-          title="Mobiel eerst"
-          text="Op telefoon voelt het als een native app met snelle acties."
-          icon="📱"
-        />
+      <View style={[styles.premiumSection, isDesktop && styles.premiumSectionDesktop]}>
+        <View style={[styles.recognitionCard, styles.recognitionCardAccent]}>
+          <Text style={styles.recognitionKicker}>Recognition</Text>
+          <Text style={styles.recognitionTitle}>Je bent niet lui. Je bent overprikkeld.</Text>
+          <Text style={styles.recognitionText}>
+            ADHD-vrouwen hebben vaak geen gebrek aan motivatie, maar teveel input tegelijk. Daarom
+            werken korte stappen beter dan lange schema's.
+          </Text>
+        </View>
+        <View style={styles.recognitionCard}>
+          <Text style={styles.recognitionKicker}>Method</Text>
+          <Text style={styles.recognitionTitle}>1 vraag. 1 keuze. 1 volgende stap.</Text>
+          <Text style={styles.recognitionText}>
+            Onze quiz houdt je focus vast met duidelijke keuzes. Daarna krijg je direct een plan en
+            het best passende e-book.
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.struggleSection}>
+        <Text style={styles.struggleHeading}>Wat je waarschijnlijk herkent</Text>
+        <View style={[styles.struggleGrid, isDesktop && styles.struggleGridDesktop]}>
+          {[
+            "Je hoofd blijft doorgaan, zelfs als je wilt uitrusten.",
+            "Je stelt uit tot de druk te hoog wordt.",
+            "Je wilt structuur, maar verliest die snel weer.",
+          ].map((item, index) => (
+            <View key={item} style={styles.struggleCard}>
+              <Text style={styles.struggleIndex}>0{index + 1}</Text>
+              <Text style={styles.struggleText}>{item}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.productsStrip}>
+        <View style={styles.productsStripHeader}>
+          <Text style={styles.productsStripTitle}>Aanbevolen starts</Text>
+          <Pressable style={styles.ghostButton} onPress={() => goRoute("shop", "tap")}>
+            <Text style={styles.ghostButtonText}>Bekijk alles</Text>
+          </Pressable>
+        </View>
+        <View style={[styles.productsStripGrid, isDesktop && styles.productsStripGridDesktop]}>
+          {EBOOK_CATALOG.slice(0, 3).map((product) => (
+            <View key={product.id} style={styles.productsStripCard}>
+              <Image source={product.cover ?? SAMPLE_COVER} style={styles.productsStripImage} />
+              <Text style={styles.productsStripCardTitle}>{product.title}</Text>
+              <Text style={styles.productsStripMeta}>{product.price}</Text>
+              <Pressable style={styles.smallButton} onPress={() => pickProduct(product, true)}>
+                <Text style={styles.smallButtonText}>Bestel</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.communitySection}>
+        <Text style={styles.communityQuote}>
+          "Ik ging van chaos naar rust, zonder mezelf te forceren."
+        </Text>
+        <Text style={styles.communityMeta}>Member review · ADHD Girls Club</Text>
       </View>
 
       <View style={styles.bannerCard}>
-        <Text style={styles.bannerEyebrow}>Momentum vasthouden</Text>
-        <Text style={styles.bannerTitle}>Begin nu en rond vandaag je eerste stap af</Text>
+        <Text style={styles.bannerEyebrow}>Final CTA</Text>
+        <Text style={styles.bannerTitle}>Pak vandaag jouw persoonlijke ADHD plan</Text>
         <Pressable style={styles.primaryButton} onPress={startQuiz}>
-          <Text style={styles.primaryButtonText}>Doe de test</Text>
+          <Text style={styles.primaryButtonText}>Doe de quiz</Text>
         </Pressable>
       </View>
     </>
@@ -1515,6 +1558,13 @@ const styles = StyleSheet.create({
     padding: 18,
     gap: 9,
   },
+  heroPoster: {
+    width: "100%",
+    aspectRatio: 1024 / 1536,
+    borderRadius: 16,
+    backgroundColor: "#1d2026",
+    marginBottom: 6,
+  },
   sideTitle: {
     fontFamily: displayFont,
     color: "#f4f0e8",
@@ -1572,6 +1622,166 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
+  },
+  premiumSection: {
+    gap: 10,
+  },
+  premiumSectionDesktop: {
+    flexDirection: "row",
+  },
+  recognitionCard: {
+    flex: 1,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#323740",
+    backgroundColor: "rgba(10, 12, 16, 0.95)",
+    padding: 15,
+    gap: 8,
+  },
+  recognitionCardAccent: {
+    backgroundColor: "rgba(20, 22, 27, 0.95)",
+    borderColor: "#545a63",
+  },
+  recognitionKicker: {
+    fontFamily: appFont,
+    color: "#9fa3ad",
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    fontWeight: "700",
+  },
+  recognitionTitle: {
+    fontFamily: displayFont,
+    color: "#f2ede6",
+    fontSize: 34,
+    lineHeight: 34,
+    fontWeight: "700",
+  },
+  recognitionText: {
+    fontFamily: appFont,
+    color: "#b0b0b5",
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  struggleSection: {
+    gap: 8,
+  },
+  struggleHeading: {
+    fontFamily: displayFont,
+    color: "#f1ece5",
+    fontSize: 38,
+    lineHeight: 38,
+    fontWeight: "700",
+  },
+  struggleGrid: {
+    gap: 9,
+  },
+  struggleGridDesktop: {
+    flexDirection: "row",
+  },
+  struggleCard: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#32363f",
+    backgroundColor: "rgba(11, 13, 17, 0.95)",
+    padding: 12,
+    gap: 5,
+  },
+  struggleIndex: {
+    fontFamily: appFont,
+    color: "#8c9098",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.9,
+  },
+  struggleText: {
+    fontFamily: appFont,
+    color: "#d0cfcf",
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  productsStrip: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#2f333c",
+    backgroundColor: "rgba(10, 12, 16, 0.95)",
+    padding: 14,
+    gap: 10,
+  },
+  productsStripHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  productsStripTitle: {
+    fontFamily: displayFont,
+    color: "#f2eee7",
+    fontSize: 34,
+    lineHeight: 34,
+    fontWeight: "700",
+  },
+  productsStripGrid: {
+    gap: 9,
+  },
+  productsStripGridDesktop: {
+    flexDirection: "row",
+  },
+  productsStripCard: {
+    flex: 1,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#343943",
+    backgroundColor: "rgba(14, 16, 21, 0.96)",
+    padding: 10,
+    gap: 7,
+  },
+  productsStripImage: {
+    width: "100%",
+    aspectRatio: 1024 / 1536,
+    borderRadius: 10,
+    backgroundColor: "#20242b",
+  },
+  productsStripCardTitle: {
+    fontFamily: displayFont,
+    color: "#f0ece4",
+    fontSize: 31,
+    lineHeight: 31,
+    fontWeight: "700",
+  },
+  productsStripMeta: {
+    fontFamily: appFont,
+    color: "#9ea2aa",
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  communitySection: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#353a43",
+    backgroundColor: "rgba(14, 16, 20, 0.95)",
+    padding: 16,
+    gap: 8,
+  },
+  communityQuote: {
+    fontFamily: displayFont,
+    color: "#f1ece5",
+    fontSize: 42,
+    lineHeight: 42,
+    fontWeight: "700",
+    letterSpacing: -0.7,
+  },
+  communityMeta: {
+    fontFamily: appFont,
+    color: "#a0a3ab",
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
   },
   primaryButton: {
     minHeight: 52,
