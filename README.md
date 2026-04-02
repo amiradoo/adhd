@@ -7,6 +7,17 @@ Werkmap:
 
 ## Wat er nu in zit
 
+- Volledige website-structuur in 1 app:
+  - Home
+  - Quiz
+  - Resultaat
+  - Shop
+  - Checkout
+  - Over ons
+  - Contact
+- Gedrag per device:
+  - Telefoon: app-achtige webapp shell + bottom dock + geluidjes bij acties
+  - Desktop/laptop: normale website-layout zonder mobile app-dock
 - Mobile web-app shell met vaste app-bar bovenin
 - Mobile web-app shell met vaste bottom dock op mobiel
 - Touch-first UI met grote actieknoppen
