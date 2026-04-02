@@ -2,6 +2,10 @@
 
 React Native (Expo) versie van je ADHD-proof webshop.
 
+Dit is de enige map die je nodig hebt voor je live website:
+
+- `/Users/amiradouairi/Documents/New project/website`
+
 ## Features
 
 - Kleurrijke homepagina met sterke CTA's
@@ -14,7 +18,7 @@ React Native (Expo) versie van je ADHD-proof webshop.
 ## Lokaal draaien
 
 ```bash
-cd "/Users/amiradouairi/Documents/New project/adhd-webshop-native"
+cd "/Users/amiradouairi/Documents/New project/website"
 npm install
 npm start
 ```
@@ -39,7 +43,7 @@ npm run build
 
 ## Netlify deploy
 
-Deze app is Netlify-klaar met [netlify.toml](/Users/amiradouairi/Documents/New%20project/adhd-webshop-native/netlify.toml).
+Deze app is Netlify-klaar met [netlify.toml](/Users/amiradouairi/Documents/New%20project/website/netlify.toml).
 
 Belangrijk:
 
