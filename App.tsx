@@ -83,6 +83,14 @@ const ROUTES: Route[] = [
   "thanks",
 ];
 
+const DESKTOP_NAV: { route: Route; label: string }[] = [
+  { route: "home", label: "Home" },
+  { route: "quiz", label: "Quiz" },
+  { route: "shop", label: "Shop" },
+  { route: "about", label: "Over Ons" },
+  { route: "contact", label: "Contact" },
+];
+
 const ANSWER_OPTIONS = ["Nooit", "Soms", "Vaak", "Altijd"];
 const OPTION_POINTS = [0, 1, 2, 3];
 const OPTION_VIBE_LABELS = ["Rustig", "Wisselend", "Herkenbaar", "Vol raak"];
@@ -562,6 +570,12 @@ export default function App() {
     setMenuOpen(false);
   }, [route]);
 
+  useEffect(() => {
+    if (isDesktop && menuOpen) {
+      setMenuOpen(false);
+    }
+  }, [isDesktop, menuOpen]);
+
   const goRoute = (next: Route, tone: "tap" | "success" | "error" = "tap") => {
     setRoute(next);
     playUiSound(tone);
@@ -757,37 +771,69 @@ export default function App() {
     <>
       <View style={[styles.heroExperience, isDesktop && styles.heroExperienceDesktop]}>
         <Image source={FIGMA_TEXTURE} resizeMode="cover" style={styles.heroTexture} />
-
-        <View style={[styles.heroGlassCard, !isDesktop && styles.heroGlassCardMobile]}>
-          <Text style={styles.eyebrow}>Premium ADHD Women Website</Text>
-          <Text style={[styles.heroDisplay, !isDesktop && styles.heroDisplayMobile]}>
-            Free Ebooks{"\n"}Voor Rust in Je Hoofd
-          </Text>
-          <Text style={styles.heroText}>
-            Een rustige, premium homepage die je focus vasthoudt. Doe de quiz, ontvang je type en
-            ga direct door naar de juiste e-book aankoopflow.
-          </Text>
-          <View style={styles.heroActions}>
-            <Pressable style={styles.primaryButton} onPress={startQuiz}>
-              <Text style={styles.primaryButtonText}>Start quiz nu</Text>
-            </Pressable>
-            <Pressable style={styles.secondaryButton} onPress={() => goRoute("shop", "tap")}>
-              <Text style={styles.secondaryButtonText}>Bekijk e-books</Text>
-            </Pressable>
+        <View style={[styles.heroLayout, isDesktop && styles.heroLayoutDesktop]}>
+          <View
+            style={[
+              styles.heroGlassCard,
+              isDesktop ? styles.heroGlassCardDesktop : styles.heroGlassCardMobile,
+            ]}
+          >
+            <Text style={styles.eyebrow}>Premium ADHD Women Website</Text>
+            <Text style={[styles.heroDisplay, !isDesktop && styles.heroDisplayMobile]}>
+              Rust in je hoofd,{"\n"}stap voor stap
+            </Text>
+            <Text style={styles.heroText}>
+              Doe de quiz, ontdek jouw ADHD-profiel en bestel direct het e-book dat daarbij past.
+              Duidelijk, snel en zonder overprikkeling.
+            </Text>
+            <View style={styles.heroActions}>
+              <Pressable style={styles.primaryButton} onPress={startQuiz}>
+                <Text style={styles.primaryButtonText}>Start quiz nu</Text>
+              </Pressable>
+              <Pressable style={styles.secondaryButton} onPress={() => goRoute("shop", "tap")}>
+                <Text style={styles.secondaryButtonText}>Bekijk e-books</Text>
+              </Pressable>
+            </View>
+            <View style={styles.heroStatsRow}>
+              <Text style={styles.heroStat}>ADHD-proof flow</Text>
+              <Text style={styles.heroStat}>Mobile + Desktop</Text>
+              <Text style={styles.heroStat}>Snelle checkout</Text>
+            </View>
           </View>
-          <View style={styles.heroStatsRow}>
-            <Text style={styles.heroStat}>Auto layout</Text>
-            <Text style={styles.heroStat}>Mobile + Desktop</Text>
-            <Text style={styles.heroStat}>High UX</Text>
-          </View>
-        </View>
 
-        <View style={[styles.heroCollage, !isDesktop && styles.heroCollageMobile]}>
-          <Image source={COLLAGE_1} resizeMode="cover" style={[styles.collageCard, styles.collageCardA]} />
-          <Image source={COLLAGE_2} resizeMode="cover" style={[styles.collageCard, styles.collageCardB]} />
-          <Image source={COLLAGE_3} resizeMode="cover" style={[styles.collageCard, styles.collageCardC]} />
-          <Image source={COLLAGE_4} resizeMode="cover" style={[styles.collageCard, styles.collageCardD]} />
-          <Image source={COLLAGE_5} resizeMode="cover" style={[styles.collageCard, styles.collageCardE]} />
+          <View
+            style={[
+              styles.heroCollage,
+              isDesktop && styles.heroCollageDesktop,
+              !isDesktop && styles.heroCollageMobile,
+            ]}
+          >
+            <Image
+              source={COLLAGE_1}
+              resizeMode="cover"
+              style={[styles.collageCard, styles.collageCardA, isDesktop && styles.collageCardDesktop]}
+            />
+            <Image
+              source={COLLAGE_2}
+              resizeMode="cover"
+              style={[styles.collageCard, styles.collageCardB, isDesktop && styles.collageCardDesktop]}
+            />
+            <Image
+              source={COLLAGE_3}
+              resizeMode="cover"
+              style={[styles.collageCard, styles.collageCardC, isDesktop && styles.collageCardDesktop]}
+            />
+            <Image
+              source={COLLAGE_4}
+              resizeMode="cover"
+              style={[styles.collageCard, styles.collageCardD, isDesktop && styles.collageCardDesktop]}
+            />
+            <Image
+              source={COLLAGE_5}
+              resizeMode="cover"
+              style={[styles.collageCard, styles.collageCardE, isDesktop && styles.collageCardDesktop]}
+            />
+          </View>
         </View>
       </View>
 
@@ -836,7 +882,10 @@ export default function App() {
         <View style={[styles.productsStripGrid, isDesktop && styles.productsStripGridDesktop]}>
           {EBOOK_CATALOG.slice(0, 3).map((product) => (
             <View key={product.id} style={styles.productsStripCard}>
-              <Image source={product.cover ?? SAMPLE_COVER} style={styles.productsStripImage} />
+              <Image
+                source={product.cover ?? SAMPLE_COVER}
+                style={[styles.productsStripImage, isDesktop && styles.productsStripImageDesktop]}
+              />
               <Text style={styles.productsStripCardTitle}>{product.title}</Text>
               <Text style={styles.productsStripMeta}>{product.price}</Text>
               <Pressable style={styles.smallButton} onPress={() => pickProduct(product, true)}>
@@ -865,7 +914,7 @@ export default function App() {
   );
 
   const renderQuiz = () => (
-    <View style={styles.pageCard}>
+    <View style={[styles.pageCard, isDesktop && styles.pageCardDesktop]}>
       <Text style={styles.sectionTitle}>Welke ADHD type ben jij?</Text>
       <Text style={styles.sectionLead}>
         12 vragen, elk in 1 scherm. Kies wat het meest klopt voor jou.
@@ -924,7 +973,7 @@ export default function App() {
   const renderResult = () => {
     if (!resultProfile) {
       return (
-        <View style={styles.pageCard}>
+        <View style={[styles.pageCard, isDesktop && styles.pageCardDesktop]}>
           <Text style={styles.sectionTitle}>Nog geen resultaat</Text>
           <Text style={styles.sectionLead}>Doe eerst de quiz om je persoonlijke profiel te zien.</Text>
           <Pressable style={styles.primaryButton} onPress={startQuiz}>
@@ -935,7 +984,7 @@ export default function App() {
     }
 
     return (
-      <View style={styles.pageCard}>
+      <View style={[styles.pageCard, isDesktop && styles.pageCardDesktop]}>
         <Text style={styles.resultBadge}>Jouw uitslag</Text>
         <Text style={styles.sectionTitle}>Jij bent: {resultProfile.name}</Text>
         <Text style={styles.sectionLead}>{resultProfile.description}</Text>
@@ -963,7 +1012,11 @@ export default function App() {
         <View style={styles.recommendCard}>
           <Text style={styles.recommendLabel}>Aanbevolen e-book</Text>
           <View style={[styles.recommendInner, isDesktop && styles.recommendInnerDesktop]}>
-            <Image source={recommendedEbook.cover ?? SAMPLE_COVER} style={styles.recommendImage} resizeMode="cover" />
+            <Image
+              source={recommendedEbook.cover ?? SAMPLE_COVER}
+              style={[styles.recommendImage, isDesktop && styles.recommendImageDesktop]}
+              resizeMode="cover"
+            />
             <View style={styles.recommendCopy}>
               <Text style={styles.recommendTitle}>{recommendedEbook.title}</Text>
               <Text style={styles.recommendText}>{recommendedEbook.description}</Text>
@@ -1015,7 +1068,7 @@ export default function App() {
   };
 
   const renderShop = () => (
-    <View style={styles.pageCard}>
+    <View style={[styles.pageCard, isDesktop && styles.pageCardDesktop]}>
       <Text style={styles.sectionTitle}>Shop</Text>
       <Text style={styles.sectionLead}>Kies je e-book en ga direct door naar checkout.</Text>
 
@@ -1031,7 +1084,11 @@ export default function App() {
                 active && styles.catalogCardActive,
               ]}
             >
-              <Image source={ebook.cover ?? SAMPLE_COVER} style={styles.catalogImage} resizeMode="cover" />
+              <Image
+                source={ebook.cover ?? SAMPLE_COVER}
+                style={[styles.catalogImage, isDesktop && styles.catalogImageDesktop]}
+                resizeMode="cover"
+              />
               <Text style={styles.catalogTitle}>{ebook.title}</Text>
               <Text style={styles.catalogSubtitle}>{ebook.subtitle}</Text>
               <Text style={styles.catalogDescription}>{ebook.description}</Text>
@@ -1049,7 +1106,7 @@ export default function App() {
   );
 
   const renderCheckout = () => (
-    <View style={styles.pageCard}>
+    <View style={[styles.pageCard, isDesktop && styles.pageCardDesktop]}>
       <Text style={styles.sectionTitle}>Checkout</Text>
       <Text style={styles.sectionLead}>Snelle checkout om je momentum vast te houden.</Text>
 
@@ -1111,7 +1168,11 @@ export default function App() {
 
         <View style={styles.checkoutSummaryCard}>
           <Text style={styles.infoBlockTitle}>Je bestelling</Text>
-          <Image source={selectedProduct.cover ?? SAMPLE_COVER} style={styles.summaryImage} resizeMode="cover" />
+          <Image
+            source={selectedProduct.cover ?? SAMPLE_COVER}
+            style={[styles.summaryImage, isDesktop && styles.summaryImageDesktop]}
+            resizeMode="cover"
+          />
           <Text style={styles.summaryTitle}>{selectedProduct.title}</Text>
           <Text style={styles.summaryText}>{selectedProduct.subtitle}</Text>
           <Text style={styles.summaryPrice}>{selectedProduct.price}</Text>
@@ -1122,7 +1183,7 @@ export default function App() {
   );
 
   const renderThanks = () => (
-    <View style={styles.pageCard}>
+    <View style={[styles.pageCard, isDesktop && styles.pageCardDesktop]}>
       <Text style={styles.resultBadge}>Bedankt</Text>
       <Text style={styles.sectionTitle}>Je bestelling is binnen</Text>
       <Text style={styles.sectionLead}>
@@ -1156,7 +1217,7 @@ export default function App() {
   );
 
   const renderAbout = () => (
-    <View style={styles.pageCard}>
+    <View style={[styles.pageCard, isDesktop && styles.pageCardDesktop]}>
       <Text style={styles.sectionTitle}>Over Focuskracht</Text>
       <Text style={styles.sectionLead}>
         We bouwen ADHD-proof digitale ervaringen: snel, helder en met minimale keuzestress.
@@ -1187,7 +1248,7 @@ export default function App() {
   );
 
   const renderContact = () => (
-    <View style={styles.pageCard}>
+    <View style={[styles.pageCard, isDesktop && styles.pageCardDesktop]}>
       <Text style={styles.sectionTitle}>Contact</Text>
       <Text style={styles.sectionLead}>Stuur een bericht. We reageren meestal binnen 24 uur.</Text>
 
@@ -1257,78 +1318,103 @@ export default function App() {
       <View style={[styles.topBar, isDesktop && styles.topBarDesktop]}>
         <View>
           <Text style={styles.brand}>The ADHD Girls Club</Text>
-          <Text style={styles.brandSub}>Focuskracht web app</Text>
+          <Text style={styles.brandSub}>Focuskracht website</Text>
         </View>
-        <Pressable
-          style={styles.menuButton}
-          onPress={() => {
-            setMenuOpen((prev) => !prev);
-            playUiSound("tap");
-          }}
-        >
-          <Text style={styles.menuButtonIcon}>{menuOpen ? "×" : "≡"}</Text>
-        </Pressable>
+
+        {isDesktop ? (
+          <View style={styles.desktopNav}>
+            {DESKTOP_NAV.map((item) => {
+              const active = route === item.route;
+              return (
+                <Pressable
+                  key={item.route}
+                  onPress={() => goRoute(item.route, "tap")}
+                  style={[styles.desktopNavItem, active && styles.desktopNavItemActive]}
+                >
+                  <Text style={[styles.desktopNavText, active && styles.desktopNavTextActive]}>
+                    {item.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            <Pressable style={styles.desktopCta} onPress={() => goRoute("checkout", "tap")}>
+              <Text style={styles.desktopCtaText}>Bestel Nu</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            style={styles.menuButton}
+            onPress={() => {
+              setMenuOpen((prev) => !prev);
+              playUiSound("tap");
+            }}
+          >
+            <Text style={styles.menuButtonIcon}>{menuOpen ? "×" : "≡"}</Text>
+          </Pressable>
+        )}
       </View>
 
-      <Animated.View
-        pointerEvents={menuOpen ? "auto" : "none"}
-        style={[
-          styles.menuOverlay,
-          {
-            opacity: menuFade,
-            transform: [
-              {
-                translateY: menuFade.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-18, 0],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <View style={[styles.menuContent, !isDesktop && styles.menuContentMobile]}>
-          <View style={styles.menuMainLinks}>
-            <Pressable onPress={() => openMenuRoute("home")}>
-              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>HOME</Text>
-            </Pressable>
-            <Pressable onPress={() => openMenuRoute("quiz")}>
-              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>QUIZ</Text>
-            </Pressable>
-            <Pressable onPress={() => openMenuRoute("shop")}>
-              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>SHOP</Text>
-            </Pressable>
-            <Pressable onPress={() => openMenuRoute("about")}>
-              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>ABOUT</Text>
-            </Pressable>
-            <Pressable onPress={() => openMenuRoute("contact")}>
-              <Text style={[styles.menuMainLink, !isDesktop && styles.menuMainLinkMobile]}>CONTACT</Text>
-            </Pressable>
-          </View>
+      {!isDesktop && (
+        <Animated.View
+          pointerEvents={menuOpen ? "auto" : "none"}
+          style={[
+            styles.menuOverlay,
+            {
+              opacity: menuFade,
+              transform: [
+                {
+                  translateY: menuFade.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-18, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <View style={[styles.menuContent, styles.menuContentMobile]}>
+            <View style={styles.menuMainLinks}>
+              <Pressable onPress={() => openMenuRoute("home")}>
+                <Text style={[styles.menuMainLink, styles.menuMainLinkMobile]}>HOME</Text>
+              </Pressable>
+              <Pressable onPress={() => openMenuRoute("quiz")}>
+                <Text style={[styles.menuMainLink, styles.menuMainLinkMobile]}>QUIZ</Text>
+              </Pressable>
+              <Pressable onPress={() => openMenuRoute("shop")}>
+                <Text style={[styles.menuMainLink, styles.menuMainLinkMobile]}>SHOP</Text>
+              </Pressable>
+              <Pressable onPress={() => openMenuRoute("about")}>
+                <Text style={[styles.menuMainLink, styles.menuMainLinkMobile]}>ABOUT</Text>
+              </Pressable>
+              <Pressable onPress={() => openMenuRoute("contact")}>
+                <Text style={[styles.menuMainLink, styles.menuMainLinkMobile]}>CONTACT</Text>
+              </Pressable>
+            </View>
 
-          <View style={[styles.menuSideLinks, !isDesktop && styles.menuSideLinksMobile]}>
-            <Pressable onPress={() => openMenuRoute("checkout")}>
-              <Text style={[styles.menuSideLink, !isDesktop && styles.menuSideLinkMobile]}>Checkout</Text>
-            </Pressable>
-            <Pressable onPress={() => openMenuRoute("result")}>
-              <Text style={[styles.menuSideLink, !isDesktop && styles.menuSideLinkMobile]}>
-                Resultaat
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                setSoundEnabled((prev) => !prev);
-                playUiSound("tap");
-              }}
-            >
-              <Text style={[styles.menuSideLink, !isDesktop && styles.menuSideLinkMobile]}>
-                Geluid {soundEnabled ? "aan" : "uit"}
-              </Text>
-            </Pressable>
-            <Text style={styles.menuCredits}>Focuskracht 2026</Text>
+            <View style={[styles.menuSideLinks, styles.menuSideLinksMobile]}>
+              <Pressable onPress={() => openMenuRoute("checkout")}>
+                <Text style={[styles.menuSideLink, styles.menuSideLinkMobile]}>Checkout</Text>
+              </Pressable>
+              <Pressable onPress={() => openMenuRoute("result")}>
+                <Text style={[styles.menuSideLink, styles.menuSideLinkMobile]}>
+                  Resultaat
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setSoundEnabled((prev) => !prev);
+                  playUiSound("tap");
+                }}
+              >
+                <Text style={[styles.menuSideLink, styles.menuSideLinkMobile]}>
+                  Geluid {soundEnabled ? "aan" : "uit"}
+                </Text>
+              </Pressable>
+              <Text style={styles.menuCredits}>Focuskracht 2026</Text>
+            </View>
           </View>
-        </View>
-      </Animated.View>
+        </Animated.View>
+      )}
 
       <ScrollView
         contentContainerStyle={[
@@ -1343,7 +1429,7 @@ export default function App() {
         <View style={styles.footer}>
           <Text style={styles.footerTitle}>Focuskracht</Text>
           <Text style={styles.footerText}>
-            ADHD-proof web app met editorial UI, quizflow, shop en snelle checkout.
+            ADHD-proof website met editorial UI, quizflow, shop en snelle checkout.
           </Text>
         </View>
       </ScrollView>
@@ -1419,7 +1505,53 @@ const styles = StyleSheet.create({
   topBarDesktop: {
     alignSelf: "center",
     width: "100%",
-    maxWidth: 1120,
+    maxWidth: 1260,
+    borderRadius: 12,
+    minHeight: 78,
+    paddingHorizontal: 28,
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  desktopNav: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  desktopNavItem: {
+    minHeight: 42,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    justifyContent: "center",
+  },
+  desktopNavItemActive: {
+    backgroundColor: "rgba(120, 140, 104, 0.16)",
+    borderWidth: 1,
+    borderColor: "#b7c4ab",
+  },
+  desktopNavText: {
+    fontFamily: appFont,
+    color: "#4a443b",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  desktopNavTextActive: {
+    color: "#2f3f24",
+  },
+  desktopCta: {
+    minHeight: 44,
+    borderRadius: 10,
+    backgroundColor: "#f6c4a4",
+    paddingHorizontal: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  desktopCtaText: {
+    fontFamily: appFont,
+    color: "#2d231b",
+    fontSize: 13,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
   },
   brand: {
     fontFamily: displayFont,
@@ -1531,6 +1663,8 @@ const styles = StyleSheet.create({
   },
   scrollDesktop: {
     alignItems: "center",
+    paddingHorizontal: 28,
+    paddingBottom: 52,
   },
   scrollMobile: {
     paddingBottom: 34,
@@ -1540,11 +1674,11 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   containerDesktop: {
-    maxWidth: 1120,
+    maxWidth: 1260,
   },
   heroExperience: {
-    minHeight: 560,
-    borderRadius: 24,
+    minHeight: 540,
+    borderRadius: 20,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#d8d2c4",
@@ -1557,7 +1691,22 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   heroExperienceDesktop: {
-    minHeight: 640,
+    minHeight: 500,
+  },
+  heroLayout: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 16,
+  },
+  heroLayoutDesktop: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    justifyContent: "space-between",
+    gap: 22,
+    paddingHorizontal: 26,
+    paddingTop: 28,
+    paddingBottom: 26,
   },
   heroTexture: {
     ...StyleSheet.absoluteFillObject,
@@ -1566,9 +1715,6 @@ const styles = StyleSheet.create({
     opacity: 0.58,
   },
   heroGlassCard: {
-    marginTop: 30,
-    marginLeft: 24,
-    width: "52%",
     borderRadius: 22,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.45)",
@@ -1578,10 +1724,16 @@ const styles = StyleSheet.create({
     gap: 12,
     zIndex: 3,
   },
+  heroGlassCardDesktop: {
+    flex: 1,
+    maxWidth: 620,
+    borderRadius: 18,
+    paddingHorizontal: 24,
+    paddingVertical: 22,
+    justifyContent: "space-between",
+  },
   heroGlassCardMobile: {
-    width: "91%",
-    marginLeft: 16,
-    marginTop: 18,
+    width: "100%",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 18,
@@ -1604,10 +1756,10 @@ const styles = StyleSheet.create({
   heroDisplay: {
     fontFamily: displayFont,
     color: "#ffffff",
-    fontSize: 58,
-    lineHeight: 56,
+    fontSize: 50,
+    lineHeight: 50,
     fontWeight: "700",
-    letterSpacing: -1.1,
+    letterSpacing: -0.9,
   },
   heroDisplayMobile: {
     fontSize: 40,
@@ -1617,8 +1769,8 @@ const styles = StyleSheet.create({
   heroText: {
     fontFamily: appFont,
     color: "#efe8de",
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 23,
   },
   heroActions: {
     flexDirection: "row",
@@ -1645,58 +1797,61 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
   },
   heroCollage: {
-    position: "absolute",
-    right: 12,
-    bottom: 12,
-    top: 150,
-    width: "54%",
+    position: "relative",
+    width: "100%",
+    height: 224,
+  },
+  heroCollageDesktop: {
+    width: "42%",
+    minWidth: 360,
+    maxWidth: 450,
+    height: 320,
+    alignSelf: "center",
   },
   heroCollageMobile: {
-    position: "relative",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: "100%",
-    height: 248,
+    height: 232,
     marginTop: 14,
-    paddingHorizontal: 10,
+    paddingHorizontal: 6,
   },
   collageCard: {
     position: "absolute",
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.45)",
     backgroundColor: "#d7d0c3",
   },
+  collageCardDesktop: {
+    borderRadius: 12,
+  },
   collageCardA: {
-    width: "62%",
-    height: 170,
+    width: "58%",
+    height: 136,
     left: 0,
     bottom: 0,
   },
   collageCardB: {
-    width: "52%",
-    height: 162,
+    width: "49%",
+    height: 126,
     right: 0,
-    bottom: 16,
+    bottom: 12,
   },
   collageCardC: {
-    width: "44%",
-    height: 118,
+    width: "41%",
+    height: 94,
     left: "28%",
     top: 6,
   },
   collageCardD: {
-    width: "40%",
-    height: 108,
+    width: "37%",
+    height: 88,
     right: 8,
     top: 0,
   },
   collageCardE: {
-    width: "34%",
-    height: 94,
+    width: "31%",
+    height: 76,
     left: 14,
-    top: 42,
+    top: 38,
   },
   premiumSection: {
     gap: 10,
@@ -1794,8 +1949,8 @@ const styles = StyleSheet.create({
   productsStripTitle: {
     fontFamily: displayFont,
     color: "#2d2923",
-    fontSize: 34,
-    lineHeight: 34,
+    fontSize: 30,
+    lineHeight: 30,
     fontWeight: "700",
   },
   productsStripGrid: {
@@ -1819,11 +1974,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: "#ddd7cb",
   },
+  productsStripImageDesktop: {
+    aspectRatio: undefined,
+    height: 132,
+  },
   productsStripCardTitle: {
     fontFamily: displayFont,
     color: "#2d2823",
-    fontSize: 31,
-    lineHeight: 31,
+    fontSize: 23,
+    lineHeight: 24,
     fontWeight: "700",
   },
   productsStripMeta: {
@@ -1845,8 +2004,8 @@ const styles = StyleSheet.create({
   communityQuote: {
     fontFamily: displayFont,
     color: "#2d2923",
-    fontSize: 42,
-    lineHeight: 42,
+    fontSize: 34,
+    lineHeight: 34,
     fontWeight: "700",
     letterSpacing: -0.7,
   },
@@ -1860,7 +2019,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     minHeight: 52,
-    borderRadius: 999,
+    borderRadius: 12,
     backgroundColor: "#f6c4a4",
     paddingHorizontal: 22,
     justifyContent: "center",
@@ -1881,7 +2040,7 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     minHeight: 52,
-    borderRadius: 999,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#89a076",
     backgroundColor: "rgba(120, 140, 104, 0.14)",
@@ -1984,8 +2143,8 @@ const styles = StyleSheet.create({
   bannerTitle: {
     fontFamily: displayFont,
     color: "#2e2923",
-    fontSize: 44,
-    lineHeight: 44,
+    fontSize: 36,
+    lineHeight: 36,
     fontWeight: "700",
     letterSpacing: -1.1,
   },
@@ -2002,13 +2161,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
+  pageCardDesktop: {
+    padding: 26,
+    gap: 16,
+    borderRadius: 14,
+  },
   sectionTitle: {
     fontFamily: displayFont,
     color: "#2e2923",
-    fontSize: 52,
-    lineHeight: 51,
+    fontSize: 36,
+    lineHeight: 36,
     fontWeight: "700",
-    letterSpacing: -1.1,
+    letterSpacing: -0.7,
   },
   sectionLead: {
     fontFamily: appFont,
@@ -2060,8 +2224,8 @@ const styles = StyleSheet.create({
   questionText: {
     fontFamily: displayFont,
     color: "#302b25",
-    fontSize: 39,
-    lineHeight: 41,
+    fontSize: 31,
+    lineHeight: 33,
     fontWeight: "700",
     letterSpacing: -0.8,
   },
@@ -2211,6 +2375,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "#ddd7cb",
   },
+  recommendImageDesktop: {
+    width: 168,
+    height: 236,
+    aspectRatio: undefined,
+  },
   recommendCopy: {
     flex: 1,
     gap: 8,
@@ -2218,8 +2387,8 @@ const styles = StyleSheet.create({
   recommendTitle: {
     fontFamily: displayFont,
     color: "#2f2a24",
-    fontSize: 34,
-    lineHeight: 34,
+    fontSize: 26,
+    lineHeight: 28,
     fontWeight: "700",
   },
   recommendText: {
@@ -2314,11 +2483,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: "#ddd7cb",
   },
+  catalogImageDesktop: {
+    aspectRatio: undefined,
+    height: 154,
+  },
   catalogTitle: {
     fontFamily: displayFont,
     color: "#2f2a24",
-    fontSize: 31,
-    lineHeight: 32,
+    fontSize: 23,
+    lineHeight: 25,
     fontWeight: "700",
   },
   catalogSubtitle: {
@@ -2417,11 +2590,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "#ddd7cb",
   },
+  summaryImageDesktop: {
+    aspectRatio: undefined,
+    height: 212,
+  },
   summaryTitle: {
     fontFamily: displayFont,
     color: "#2f2a24",
-    fontSize: 30,
-    lineHeight: 31,
+    fontSize: 24,
+    lineHeight: 26,
     fontWeight: "700",
   },
   summaryText: {
@@ -2432,8 +2609,8 @@ const styles = StyleSheet.create({
   summaryPrice: {
     fontFamily: displayFont,
     color: "#2f2a24",
-    fontSize: 34,
-    lineHeight: 34,
+    fontSize: 27,
+    lineHeight: 28,
     fontWeight: "700",
   },
   summaryFine: {
