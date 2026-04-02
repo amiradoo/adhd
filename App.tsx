@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Linking,
@@ -62,11 +62,34 @@ const TESTIMONIALS = [
   "Van kopen naar toepassen in dezelfde dag.",
 ];
 
+const ALL_PAGES: Page[] = ["home", "about", "faq", "contact", "privacy", "checkout", "thanks"];
+
+function parsePageFromHash(hash: string): Page | null {
+  const cleaned = hash.replace(/^#\/?/, "").trim().toLowerCase();
+  if (!cleaned) return "home";
+
+  const candidate = cleaned as Page;
+  if (ALL_PAGES.includes(candidate)) {
+    return candidate;
+  }
+
+  return null;
+}
+
+function getInitialPage(): Page {
+  if (Platform.OS !== "web" || typeof window === "undefined") {
+    return "home";
+  }
+
+  return parsePageFromHash(window.location.hash) ?? "home";
+}
+
 export default function App() {
   const { width } = useWindowDimensions();
   const isWide = width >= 940;
+  const scrollRef = useRef<ScrollView>(null);
 
-  const [currentPage, setCurrentPage] = useState<Page>("home");
+  const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [checkoutName, setCheckoutName] = useState("");
@@ -95,9 +118,44 @@ export default function App() {
     return "";
   }, [currentPage, thanksExpress, thanksMethod, thanksName]);
 
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") {
+      return;
+    }
+
+    const onHashChange = () => {
+      const pageFromHash = parsePageFromHash(window.location.hash);
+      if (pageFromHash) {
+        setCurrentPage((previousPage) => (previousPage === pageFromHash ? previousPage : pageFromHash));
+      }
+    };
+
+    window.addEventListener("hashchange", onHashChange);
+    onHashChange();
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") {
+      return;
+    }
+
+    const nextHash = `#/${currentPage}`;
+    if (window.location.hash !== nextHash) {
+      window.history.replaceState(null, "", nextHash);
+    }
+  }, [currentPage]);
+
   const navigate = (page: Page) => {
     setCurrentPage(page);
     setMenuOpen(false);
+
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
 
   const openCheckout = () => navigate("checkout");
@@ -154,43 +212,75 @@ export default function App() {
   };
 
   const sectionWidthStyle = isWide ? styles.sectionWide : styles.sectionNarrow;
+  const showFloatingBar = !isWide && currentPage !== "checkout" && currentPage !== "thanks";
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#f5fbff" />
 
-      <View style={styles.header}>
+      <View pointerEvents="none" style={styles.backgroundDecor}>
+        <View style={styles.blobOne} />
+        <View style={styles.blobTwo} />
+        <View style={styles.blobThree} />
+      </View>
+
+      <View style={[styles.header, isWide && styles.headerWide]}>
         <Pressable style={styles.brand} onPress={() => navigate("home")}>
           <View style={styles.brandMark} />
           <Text style={styles.brandText}>Focuskracht</Text>
         </Pressable>
 
-        <Pressable
-          accessibilityLabel="Open menu"
-          style={styles.menuButton}
-          onPress={() => setMenuOpen(true)}
-        >
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-        </Pressable>
+        {isWide ? (
+          <View style={styles.desktopNav}>
+            {MENU_ITEMS.map((item) => {
+              const active = currentPage === item.key;
+              return (
+                <Pressable
+                  key={item.key}
+                  style={[styles.desktopLink, active && styles.desktopLinkActive]}
+                  onPress={() => navigate(item.key)}
+                >
+                  <Text style={[styles.desktopLinkText, active && styles.desktopLinkTextActive]}>
+                    {item.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            <Pressable style={styles.desktopCta} onPress={openCheckout}>
+              <Text style={styles.desktopCtaText}>Koop nu</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            accessibilityLabel="Open menu"
+            style={styles.menuButton}
+            onPress={() => setMenuOpen(true)}
+          >
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+          </Pressable>
+        )}
       </View>
 
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.pageWrap, sectionWidthStyle]}>{renderPage()}</View>
-        <Footer onNavigate={navigate} />
+        <Footer onNavigate={navigate} isWide={isWide} />
       </ScrollView>
 
-      <View style={styles.floatingBar}>
-        <Text style={styles.floatingTitle}>Focuskracht €19</Text>
-        <Pressable style={styles.primaryButton} onPress={openCheckout}>
-          <Text style={styles.primaryButtonText}>Direct kopen</Text>
-        </Pressable>
-      </View>
+      {showFloatingBar && (
+        <View style={styles.floatingBar}>
+          <Text style={styles.floatingTitle}>Focuskracht €19</Text>
+          <Pressable style={styles.primaryButton} onPress={openCheckout}>
+            <Text style={styles.primaryButtonText}>Direct kopen</Text>
+          </Pressable>
+        </View>
+      )}
 
       <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
         <View style={styles.menuLayer}>
@@ -642,10 +732,10 @@ function StepChip({ text }: { text: string }) {
   );
 }
 
-function Footer({ onNavigate }: { onNavigate: (page: Page) => void }) {
+function Footer({ onNavigate, isWide }: { onNavigate: (page: Page) => void; isWide: boolean }) {
   return (
     <View style={styles.footer}>
-      <View style={styles.footerTop}>
+      <View style={[styles.footerTop, isWide && styles.footerTopWide]}>
         <View>
           <Text style={styles.footerBrand}>Focuskracht</Text>
           <Text style={styles.footerText}>ADHD-proof e-bookshop met snelle checkout.</Text>
@@ -693,17 +783,62 @@ const fontRegular = Platform.select({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f5fbff",
+    backgroundColor: "#f3f9ff",
+  },
+  backgroundDecor: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: "hidden",
+  },
+  blobOne: {
+    position: "absolute",
+    width: 360,
+    height: 360,
+    borderRadius: 999,
+    backgroundColor: "rgba(20, 187, 166, 0.18)",
+    top: -120,
+    left: -120,
+  },
+  blobTwo: {
+    position: "absolute",
+    width: 320,
+    height: 320,
+    borderRadius: 999,
+    backgroundColor: "rgba(255, 122, 84, 0.2)",
+    top: 70,
+    right: -150,
+  },
+  blobThree: {
+    position: "absolute",
+    width: 280,
+    height: 280,
+    borderRadius: 999,
+    backgroundColor: "rgba(61, 147, 255, 0.17)",
+    bottom: 180,
+    left: -110,
   },
   header: {
-    minHeight: 72,
-    paddingHorizontal: 18,
+    minHeight: 74,
+    marginHorizontal: 12,
+    marginTop: 8,
+    marginBottom: 4,
+    paddingHorizontal: 14,
+    borderRadius: 18,
     borderBottomWidth: 1,
-    borderBottomColor: "#d8e5f5",
-    backgroundColor: "rgba(245, 251, 255, 0.96)",
+    borderBottomColor: "#d7e4f4",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    shadowColor: "#0e2d4d",
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 9 },
+    elevation: 2,
+  },
+  headerWide: {
+    maxWidth: 1120,
+    alignSelf: "center",
+    width: "100%",
   },
   brand: {
     flexDirection: "row",
@@ -714,9 +849,9 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 10,
-    backgroundColor: "#17b8a6",
-    borderWidth: 2,
-    borderColor: "#2e90ff",
+    backgroundColor: "#14bba6",
+    borderWidth: 1,
+    borderColor: "#12897b",
   },
   brandText: {
     fontFamily: fontRegular,
@@ -725,12 +860,51 @@ const styles = StyleSheet.create({
     fontSize: 20,
     letterSpacing: -0.4,
   },
+  desktopNav: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  desktopLink: {
+    minHeight: 38,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+  },
+  desktopLinkActive: {
+    backgroundColor: "#eaf4ff",
+    borderWidth: 1,
+    borderColor: "#bfdbff",
+  },
+  desktopLinkText: {
+    fontFamily: fontRegular,
+    color: "#304a6a",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  desktopLinkTextActive: {
+    color: "#1f5ba0",
+  },
+  desktopCta: {
+    minHeight: 40,
+    borderRadius: 12,
+    backgroundColor: "#ff6d42",
+    paddingHorizontal: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  desktopCtaText: {
+    fontFamily: fontRegular,
+    color: "#ffffff",
+    fontWeight: "800",
+    fontSize: 13,
+  },
   menuButton: {
     width: 44,
     height: 44,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#d3e3f7",
     backgroundColor: "#ffffff",
     justifyContent: "center",
     alignItems: "center",
@@ -743,13 +917,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#11233f",
   },
   scrollContent: {
-    paddingBottom: 120,
+    paddingBottom: 130,
+    paddingTop: 6,
   },
   pageWrap: {
     width: "100%",
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    gap: 18,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    gap: 16,
   },
   sectionNarrow: {
     alignSelf: "stretch",
@@ -776,31 +951,31 @@ const styles = StyleSheet.create({
   },
   heroCopy: {
     flex: 1.1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(255, 255, 255, 0.92)",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#d2e5fb",
     padding: 18,
     gap: 14,
     shadowColor: "#0f2f52",
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 12 },
     elevation: 2,
   },
   heroCard: {
     flex: 0.9,
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#d2e5fb",
     padding: 18,
     gap: 10,
     justifyContent: "space-between",
     shadowColor: "#0f2f52",
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 12 },
     elevation: 2,
   },
   heroTitle: {
@@ -825,10 +1000,15 @@ const styles = StyleSheet.create({
   primaryButton: {
     minHeight: 48,
     borderRadius: 14,
-    backgroundColor: "#ff6d42",
+    backgroundColor: "#ff6b3f",
     paddingHorizontal: 16,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#ff6b3f",
+    shadowOpacity: 0.32,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 2,
   },
   primaryButtonText: {
     fontFamily: fontRegular,
@@ -913,10 +1093,10 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#d2e5fb",
     padding: 16,
     gap: 8,
   },
@@ -945,10 +1125,10 @@ const styles = StyleSheet.create({
   },
   productCard: {
     flex: 1.1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#d2e5fb",
     padding: 18,
     gap: 12,
   },
@@ -996,10 +1176,10 @@ const styles = StyleSheet.create({
   },
   stepsCard: {
     flex: 0.9,
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#d2e5fb",
     padding: 18,
     gap: 10,
   },
@@ -1024,22 +1204,22 @@ const styles = StyleSheet.create({
   },
   quoteCard: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#d2e5fb",
     padding: 14,
   },
   quote: {
     fontFamily: fontRegular,
     color: "#395373",
-    fontSize: 14,
+    fontSize: 15,
     lineHeight: 21,
   },
   banner: {
-    backgroundColor: "#eef7ff",
+    backgroundColor: "rgba(238, 247, 255, 0.94)",
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#c8e0fb",
     borderRadius: 20,
     padding: 18,
     gap: 12,
@@ -1067,10 +1247,10 @@ const styles = StyleSheet.create({
   },
   pageCard: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#d2e5fb",
     padding: 18,
     gap: 10,
   },
@@ -1091,10 +1271,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   faqCard: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
+    borderColor: "#d2e5fb",
     padding: 14,
     gap: 8,
   },
@@ -1222,6 +1402,11 @@ const styles = StyleSheet.create({
   footerTop: {
     gap: 18,
   },
+  footerTopWide: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
   footerBrand: {
     fontFamily: fontRegular,
     color: "#ffffff",
@@ -1263,13 +1448,18 @@ const styles = StyleSheet.create({
     bottom: 10,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#d8e5f5",
-    backgroundColor: "rgba(255,255,255,0.98)",
+    borderColor: "#d1e4f9",
+    backgroundColor: "rgba(255,255,255,0.99)",
     padding: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     gap: 10,
+    shadowColor: "#163860",
+    shadowOpacity: 0.16,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 3,
   },
   floatingTitle: {
     fontFamily: fontRegular,
